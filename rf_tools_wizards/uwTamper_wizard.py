@@ -177,34 +177,9 @@ class uwTamper_wizard(FootprintWizardBase.FootprintWizard):
         module.Add(self.smdCustomPolyPad(module, size_pad, wxPoint(0,0), "1", vpoints,F_Cu,sold_clear))
         
         size_pad = pcbnew.wxSize(width2, height2)
-        module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(length+w1/2,0-p2vof), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset2))
+        #solder clearance added only to polygon
+        module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(length+w1/2,0-p2vof), "1", PAD_SHAPE_RECT,0,F_Cu,0.0,offset2))
         
-        
-        #end_coord = (radius) * cmath.exp(math.radians(angle_deg-90)*1j)
-        #if pads['rectangle'] or angle_deg == 0 or radius == 0:
-        #    if not line:
-        #        ## NB pads must be the same size and have the same center
-        #        module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset1))
-        #    else:
-        #        module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
-        #    if not line:
-        #        #pos = pcbnew.wxPoint(end_coord.real+(sign*width/2)*math.cos(angle),end_coord.imag+(sign*width/2)*math.sin(angle)+radius)
-        #        pos = pcbnew.wxPoint(end_coord.real,end_coord.imag+radius)
-        #        module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,90-angle_deg,F_Cu,sold_clear,wxPoint(0,(sign*width/2))))
-        #        #*math.sin(math.pi/2-angle),(sign*width/2)*math.cos(math.pi/2-angle))))
-        #    else:
-        #        pos = pcbnew.wxPoint(radius,0) #+width/2,0)
-        #        module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
-        #else:
-        #    ## NB pads must be the same size and have the same center
-        #    #size_pad = pcbnew.wxSize(width/5, width/5)
-        #    size_pad = pcbnew.wxSize(width, width)
-        #    if not line:
-        #        pos = pcbnew.wxPoint(end_coord.real,end_coord.imag+radius)
-        #    else:
-        #        pos = pcbnew.wxPoint(radius,0)
-        #    module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_CIRCLE,0,F_Cu,sold_clear))
-
         # Text size
         text_size = self.GetTextSize()  # IPC nominal
         thickness = self.GetTextThickness()

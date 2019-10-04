@@ -306,7 +306,8 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         posx += (pad_l/2)*math.sin(angle)
         posy += (pad_l/2)*math.cos(angle)+w/4
         size_pad = wxSize(pad_l, width)
-        module.Add(self.smdRectPad(module, size_pad, wxPoint(posx,posy), "1", (angle_deg-90)*10,layer,sold_clear))
+        #solder clearance added only to polygon
+        module.Add(self.smdRectPad(module, size_pad, wxPoint(posx,posy), "1", (angle_deg-90)*10,layer,0.0))
         # moving anchor to center of first pad
         module.MoveAnchorPosition(wxPoint(-width/2,pad_l/2))
         # set SMD attribute
