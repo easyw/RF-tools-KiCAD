@@ -27,33 +27,33 @@ import pcbnew
 import FootprintWizardBase
 
 
-class uwTamper_wizard(FootprintWizardBase.FootprintWizard):
+class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
 
     def GetName(self):
-        return "uW Tamper Pad"
+        return "uW Taper Pad"
 
     def GetDescription(self):
-        return "uW Tamper Pad Footprint Wizard"
+        return "uW Taper Pad Footprint Wizard"
 
     def GenerateParameterList(self):
 
-        self.AddParam("Tamper", "P1 width", self.uMM, 0.5, min_value=0, hint="Pad 1 width")
-        self.AddParam("Tamper", "P1 height", self.uMM, 0.5, min_value=0, hint="Pad 1 height")
-        self.AddParam("Tamper", "P2 width", self.uMM, 1.0, min_value=0, hint="Pad 2 width")
-        self.AddParam("Tamper", "P2 height", self.uMM, 1.0, min_value=0, hint="Pad 2 height")
-        self.AddParam("Tamper", "P2 vert offset", self.uMM, 0.0, hint="Pad 2 vertical offset")
-        self.AddParam("Tamper", "length", self.uMM, 3.0, min_value=0, hint="length")
-        self.AddParam("Tamper", "solder_clearance", self.uMM, 0.0, min_value=0, hint="Solder Clearance")
+        self.AddParam("Taper", "P1 width", self.uMM, 0.5, min_value=0, hint="Pad 1 width")
+        self.AddParam("Taper", "P1 height", self.uMM, 0.5, min_value=0, hint="Pad 1 height")
+        self.AddParam("Taper", "P2 width", self.uMM, 1.0, min_value=0, hint="Pad 2 width")
+        self.AddParam("Taper", "P2 height", self.uMM, 1.0, min_value=0, hint="Pad 2 height")
+        self.AddParam("Taper", "P2 vert offset", self.uMM, 0.0, hint="Pad 2 vertical offset")
+        self.AddParam("Taper", "length", self.uMM, 3.0, min_value=0, hint="length")
+        self.AddParam("Taper", "solder_clearance", self.uMM, 0.0, min_value=0, hint="Solder Clearance")
         
     def CheckParameters(self):
 
-        pads = self.parameters['Tamper']
+        pads = self.parameters['Taper']
         
 
     def GetValue(self):
-        name = "{0:.2f}_{1:0.2f}_{2:.2f}_{3:.2f}_{4:.2f}".format(pcbnew.ToMM(self.parameters["Tamper"]["P1 width"]),\
-               pcbnew.ToMM(self.parameters["Tamper"]["P1 height"]),pcbnew.ToMM(self.parameters["Tamper"]["P2 width"]),\
-               pcbnew.ToMM(self.parameters["Tamper"]["P2 height"]),pcbnew.ToMM(self.parameters["Tamper"]["length"]))
+        name = "{0:.2f}_{1:0.2f}_{2:.2f}_{3:.2f}_{4:.2f}".format(pcbnew.ToMM(self.parameters["Taper"]["P1 width"]),\
+               pcbnew.ToMM(self.parameters["Taper"]["P1 height"]),pcbnew.ToMM(self.parameters["Taper"]["P2 width"]),\
+               pcbnew.ToMM(self.parameters["Taper"]["P2 height"]),pcbnew.ToMM(self.parameters["Taper"]["length"]))
         return "uwT" + "%s" % name
     
     def GetReferencePrefix(self):
@@ -127,7 +127,7 @@ class uwTamper_wizard(FootprintWizardBase.FootprintWizard):
         
     def BuildThisFootprint(self):
 
-        pads = self.parameters['Tamper']
+        pads = self.parameters['Taper']
         
         width1 = pads['P1 width']
         width2 = pads['P2 width']
@@ -192,4 +192,4 @@ class uwTamper_wizard(FootprintWizardBase.FootprintWizard):
         __version__ = 1.3
         self.buildmessages += ("version: {:.1f}".format(__version__))
 
-uwTamper_wizard().register()
+uwTaper_wizard().register()

@@ -4,7 +4,7 @@
 
 from . import uwArcPrimitive_wizard
 from . import uwMitered_wizard
-from . import uwTamper_wizard
+from . import uwTaper_wizard
 
 
 
