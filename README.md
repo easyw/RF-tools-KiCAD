@@ -8,11 +8,17 @@ compatibility: KiCAD 5.1.4
 	* Track Length (*Action Plugin*)
 
 <br/>
-[![Tracks Rounder](resources/tracks-rounder-preview.png?raw=true "Round Tracks")](resources/tracks-rounder.gif?raw=true "Round Tracks")
+
+[![Tracks Rounder](resources/tracks-rounder-preview.png?raw=true "Tracks Rounder")](resources/tracks-rounder.gif?raw=true "Tracks Rounder")
+
 <br/>
-[![Solder Mask Expander](resources/solder-mask-expander-preview.png?raw=true "Solder Mask Expander")](resources/solder-mask-expander.gif?raw=true "Round Tracks")
+
+[![Solder Mask Expander](resources/solder-mask-expander-preview.png?raw=true "Solder Mask Expander")](resources/solder-mask-expander.gif?raw=true "Solder Mask Expander)
+
 <br/>
-[![Track Lenght](resources/track-length-preview.png?raw=true "Track Length")](resources/track-length.png?raw=true "Track Length")
+
+[![Track Lenght](resources/track-length-preview.png?raw=true "Track Lenght")](resources/track-length.png?raw=true "Track Lenght")
+
 <br/>
 <br/>
 
