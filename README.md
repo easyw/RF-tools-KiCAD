@@ -13,7 +13,7 @@ compatibility: KiCAD 5.1.4
 
 <br/>
 
-[![Solder Mask Expander](resources/solder-mask-expander-preview.png?raw=true "Solder Mask Expander")](resources/solder-mask-expander.gif?raw=true "Solder Mask Expander)
+[![Solder Mask Expander](resources/solder-mask-expander-preview.png?raw=true "Solder Mask Expander")](resources/solder-mask-expander.gif?raw=true "Solder Mask Expander")
 
 <br/>
 
