@@ -67,7 +67,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
     # hack for new wxFormBuilder generating code incompatible with old wxPython
     # noinspection PyMethodOverriding
     def SetSizeHints(self, sz1, sz2):
-        if sys.version_info[0] == 2:
+        if wx.__version__ < '4.0':
             self.SetSizeHintsSz(sz1, sz2)
         else:
             super(RoundTrack_Dlg, self).SetSizeHints(sz1, sz2)
@@ -79,11 +79,11 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
         return self.EndModal(wx.ID_REVERT)
 
     def __init__(self,  parent):
+        import wx
         RoundTrackDlg.RoundTrackDlg.__init__(self, parent)
         self.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
         self.m_buttonReconnect.Bind(wx.EVT_BUTTON, self.onConnectClick)
-        import sys
-        if sys.version_info[0] == 2:
+        if wx.__version__ < '4.0':
             self.m_buttonReconnect.SetToolTipString( u"Select two converging Tracks to re-connect them\nor Select tracks including one round corner to be straighten" )
             self.m_buttonRound.SetToolTipString( u"Select two connected Tracks to round the corner\nThen choose distance from intersection and the number of segments" )
         else:
