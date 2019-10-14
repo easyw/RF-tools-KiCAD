@@ -21,6 +21,10 @@ compatibility: KiCAD 5.1.4
 [![Track Lenght](resources/track-length-preview.png?raw=true "Track Lenght")](resources/track-length.png?raw=true "Track Lenght")
 
 <br/>
+
+[![Via Fence Generator](resources/via-fencing-preview.png?raw=true "Via Fence Generator")](resources/via-fencing.png?raw=true "Via Fence Generator")
+
+<br/>
 <br/>
 
 * **Footprint Wizards:** (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
