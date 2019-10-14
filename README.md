@@ -3,9 +3,10 @@ compatibility: KiCAD 5.1.4
 
 * **Rounder tools for tracks** (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 
-	* Rounder for tracks (*Action Plugin*)
-	* Solder Mask Expander (*Action Plugin*)
-	* Track Length (*Action Plugin*)
+    * Rounder for tracks (*Action Plugin*)
+    * Solder Mask Expander (*Action Plugin*)
+    * Track Length (*Action Plugin*)
+    * Via Fence Generator (*Action Plugin*)
 
 <br/>
 
