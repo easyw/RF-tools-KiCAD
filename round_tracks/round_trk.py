@@ -81,6 +81,8 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
     def __init__(self,  parent):
         import wx
         RoundTrackDlg.RoundTrackDlg.__init__(self, parent)
+        #self.GetSizer().Fit(self)
+        self.SetMinSize(self.GetSize())
         self.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
         self.m_buttonReconnect.Bind(wx.EVT_BUTTON, self.onConnectClick)
         if wx.__version__ < '4.0':
@@ -93,7 +95,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\nversion 1.5"
+        self.name = "Rounder for Tracks\nversion 1.6"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")

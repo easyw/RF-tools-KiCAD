@@ -17,7 +17,7 @@ import wx.xrc
 class RoundTrackDlg ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Round Track parameters", pos = wx.DefaultPosition, size = wx.Size( 390,520 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Round Track parameters", pos = wx.DefaultPosition, size = wx.Size( 390,520 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
