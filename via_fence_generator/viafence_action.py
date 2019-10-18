@@ -7,15 +7,20 @@ import sys
 import re
 import time
 import json
+import math
+
 from collections import OrderedDict
 from .viafence import *
 from .viafence_dialogs import *
 
 
+def distance (p1,p2):
+    return math.hypot(p1.y-p2.y,p1.x-p2.x)
+
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.1"
+        self.name = "Via Fence Generator\nversion 1.2"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -121,6 +126,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         self.mainDlg.chkRemoveViasWithClearanceViolation.SetValue(self.isRemoveViasWithClearanceViolationChecked)
         self.mainDlg.chkSameNetZoneViasOnly.SetValue(self.isSameNetZoneViasOnlyChecked)
         self.mainDlg.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
+        # hiding unimplemented controls
+        self.mainDlg.chkRemoveViasWithClearanceViolation.Hide()
+        self.mainDlg.chkSameNetZoneViasOnly.Hide()
 
     def mainDialogToSelf(self):
         self.netFilter = self.mainDlg.txtNetFilter.GetValue()
@@ -221,9 +229,32 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 viaPoints = []
     
             if (self.isDebugDumpChecked):
+                self.viaPoints = viaPoints
                 self.dumpJSON(os.path.join(self.boardPath, time.strftime("viafence-%Y%m%d-%H%M%S.json")))
     
-            viaObjList = self.createVias(viaPoints, self.viaDrill, self.viaSize, self.viaNetId)
+            if (self.isRemoveViasWithClearanceViolationChecked):
+                # Remove Vias that violate clearance to other things
+                # Check against other tracks
+                #wx.LogMessage('hereIam')
+                # removing generated & colliding vias
+                viaPointsSafe = []
+                for i,v in enumerate(viaPoints):
+                    #clearance = v.GetClearance()
+                    collision_found = False
+                    tolerance = 1 + 0.2 
+                    # This should be handled with Net Clearance
+                    for j, vn in enumerate(viaPoints[i+1:]):
+                        if distance (pcbnew.wxPoint(v[0], v[1]),pcbnew.wxPoint(vn[0], vn[1])) < int(self.viaSize*tolerance): # +clearance viasize+20%:
+                            collision_found = True
+                    if not collision_found:
+                        viaPointsSafe.append(v)
+            
+            viaObjList = self.createVias(viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
+            via_nbr = len(viaPointsSafe)
+            wx.LogMessage(u'Placed {0:} Fencing Vias. \u26A0 Please run a DRC check on your board. \u26A0'.format(str(via_nbr)))
+            #viaObjList = self.createVias(viaPoints, self.viaDrill, self.viaSize, self.viaNetId)
+            #via_nbr = len(viaPoints)
+            
         
         elif (reply == wx.ID_DELETE):
             #user clicked ('Delete Fence Vias')
