@@ -28,7 +28,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.3"
+        self.name = "Via Fence Generator\nversion 1.4"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -283,135 +283,144 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         self.isRemoveViasWithClearanceViolationChecked = self.mainDlg.chkRemoveViasWithClearanceViolation.GetValue()
 
     def Run(self):
-        #error exception if pyclipper lib is missing
-        import pyclipper
-        self.boardObj = pcbnew.GetBoard()
-        self.boardDesignSettingsObj = self.boardObj.GetDesignSettings()
-        self.boardPath = os.path.dirname(os.path.realpath(self.boardObj.GetFileName()))
-        self.layerMap = self.getLayerMap()
-        self.highlightedNetId = self.boardObj.GetHighLightNetCode()
-        self.netMap = self.getNetMap()
-        self.netFilterList = self.createNetFilterSuggestions()
-        self.netFilter = self.netMap[self.highlightedNetId].GetNetname() if self.highlightedNetId != -1 else self.netFilterList[0]
-        self.viaSize = self.boardDesignSettingsObj.GetCurrentViaSize()
-        self.layerId = 0 #TODO: How to get currently selected layer?
-        self.viaDrill = self.boardDesignSettingsObj.GetCurrentViaDrill()
-        self.viaPitch = pcbnew.FromMM(1.0)
-        self.viaOffset = pcbnew.FromMM(1.0)
-        self.viaNetId = 0 #TODO: Maybe a better init value here. Try to find "GND" maybe?
-        self.isNetFilterChecked = 1 if self.highlightedNetId != -1 else 0
-        self.isLayerChecked = 0
-        self.isIncludeDrawingChecked = 0
-        self.isIncludeSelectionChecked = 1
-        self.isDebugDumpChecked = 0
-        self.isRemoveViasWithClearanceViolationChecked = 1
-        self.isSameNetZoneViasOnlyChecked = 0
-    
-        self.mainDlg = MainDialog(None)
-        self.selfToMainDialog()
-        reply = self.mainDlg.ShowModal()
-        if (reply == wx.ID_OK):
-            # User pressed OK.
-            # Assemble a list of pcbnew.BOARD_ITEMs derived objects that support GetStart/GetEnd and IsOnLayer
-            self.mainDialogToSelf()
-            lineObjects = []
-    
-            # Do we want to include net tracks?
-            if (self.isNetFilterChecked):
-                # Find nets that match the generated regular expression and add their tracks to the list
-                netRegex = self.regExFromSimpleEx(self.netFilter)
-                for netId in self.netMap:
-                    if re.match(netRegex, self.netMap[netId].GetNetname()):
-                        for trackObject in self.boardObj.TracksInNet(netId):
-                            lineObjects += [trackObject]
-    
-            # Do we want to include drawing segments?
-            if (self.isIncludeDrawingChecked):
-                boardItem = self.boardObj.GetDrawings().GetFirst()
-                while boardItem is not None:
-                    if pcbnew.DRAWSEGMENT.ClassOf(boardItem):
-                        # A drawing segment (not a text or something else)
-                        drawingObject = boardItem.Cast()
-                        if drawingObject.GetShape() == pcbnew.S_SEGMENT:
-                            # A straight line
-                            lineObjects += [drawingObject]
-    
-                    boardItem = boardItem.Next()
-            
-            # Do we want to include track segments?
-            if (self.isIncludeSelectionChecked):
-                for item in self.boardObj.GetTracks():
-                    if type(item) is pcbnew.TRACK and item.IsSelected():
-                        lineObjects += [item]
-                
-            # Do we want to filter the generated lines by layer?
-            if (self.isLayerChecked):
-                # Filter by layer
-                # TODO: Make layer selection also a regex
-                lineObjects = [lineObject for lineObject in lineObjects if lineObject.IsOnLayer(self.layerId)]
-    
-            # Generate a path list from the pcbnew.BOARD_ITEM objects
-            self.pathList =  [[ [lineObject.GetStart()[0], lineObject.GetStart()[1]],
-                                [lineObject.GetEnd()[0],   lineObject.GetEnd()[1]]   ]
-                                for lineObject in lineObjects]
-    
-            # Generate via fence
-            try:
-                viaPoints = generateViaFence(self.pathList, self.viaOffset, self.viaPitch)
-            except:
-                wx.LogMessage ('exception on via fence generation')
-                viaPoints = []
-    
-            if (self.isDebugDumpChecked):
-                self.viaPoints = viaPoints
-                self.dumpJSON(os.path.join(self.boardPath, time.strftime("viafence-%Y%m%d-%H%M%S.json")))
-    
-            removed = False
-            if (self.isRemoveViasWithClearanceViolationChecked):
-            #if self.mainDlg.chkRemoveViasWithClearanceViolation.GetValue():
-                # Remove Vias that violate clearance to other things
-                # Check against other tracks
-                #wx.LogMessage('hereIam')
-                # removing generated & colliding vias
-                viaPointsSafe = []
-                for i,v in enumerate(viaPoints):
-                    #clearance = v.GetClearance()
-                    collision_found = False
-                    tolerance = 1 + 0.2 
-                    # This should be handled with Net Clearance
-                    for j, vn in enumerate(viaPoints[i+1:]):
-                        if distance (pcbnew.wxPoint(v[0], v[1]),pcbnew.wxPoint(vn[0], vn[1])) < int(self.viaSize*tolerance): # +clearance viasize+20%:
-                            collision_found = True
-                    if not collision_found:
-                        viaPointsSafe.append(v)
-                self.viaPointsSafe = viaPointsSafe
-                #wx.LogMessage(str(len(self.viaPointsSafe)))
-                removed = self.checkPads()
-                remvd = self.checkTracks()
-                removed = removed or remvd
-            else:
-                self.viaPointsSafe = viaPoints
-            #wx.LogMessage(str(len(self.viaPointsSafe)))
-            #self.checkPads()
-            #wx.LogMessage(str(len(self.viaPointsSafe)))
-            viaObjList = self.createVias(self.viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
-            via_nbr = len(self.viaPointsSafe)
-            msg = u'Placed {0:} Fencing Vias. \u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
-            if removed:
-                msg += u'\nRemoved DRC \u26EC colliding vias.'
-            wx.LogMessage(msg)
-            #viaObjList = self.createVias(viaPoints, self.viaDrill, self.viaSize, self.viaNetId)
-            #via_nbr = len(viaPoints)
-            
+        #check for pyclipper lib
+        pyclip = False
+        try:
+            import pyclipper
+            pyclip = True
+        except:
+            #error exception if pyclipper lib is missing
+            wdlg = wx.MessageDialog(None, u"\u2718 ERROR Missing KiCAD \'pyclipper\' python module",'ERROR message',wx.OK | wx.ICON_WARNING)# wx.ICON_ERROR)
+            result = wdlg.ShowModal()
+        if pyclip:
+        #import pyclipper
+            self.boardObj = pcbnew.GetBoard()
+            self.boardDesignSettingsObj = self.boardObj.GetDesignSettings()
+            self.boardPath = os.path.dirname(os.path.realpath(self.boardObj.GetFileName()))
+            self.layerMap = self.getLayerMap()
+            self.highlightedNetId = self.boardObj.GetHighLightNetCode()
+            self.netMap = self.getNetMap()
+            self.netFilterList = self.createNetFilterSuggestions()
+            self.netFilter = self.netMap[self.highlightedNetId].GetNetname() if self.highlightedNetId != -1 else self.netFilterList[0]
+            self.viaSize = self.boardDesignSettingsObj.GetCurrentViaSize()
+            self.layerId = 0 #TODO: How to get currently selected layer?
+            self.viaDrill = self.boardDesignSettingsObj.GetCurrentViaDrill()
+            self.viaPitch = pcbnew.FromMM(1.0)
+            self.viaOffset = pcbnew.FromMM(1.0)
+            self.viaNetId = 0 #TODO: Maybe a better init value here. Try to find "GND" maybe?
+            self.isNetFilterChecked = 1 if self.highlightedNetId != -1 else 0
+            self.isLayerChecked = 0
+            self.isIncludeDrawingChecked = 0
+            self.isIncludeSelectionChecked = 1
+            self.isDebugDumpChecked = 0
+            self.isRemoveViasWithClearanceViolationChecked = 1
+            self.isSameNetZoneViasOnlyChecked = 0
         
-        elif (reply == wx.ID_DELETE):
-            #user clicked ('Delete Fence Vias')
-            for via in self.boardObj.GetTracks():
-                if via.Type() == pcbnew.PCB_VIA_T:
-                    if via.GetTimeStamp() == 55:
-                        self.boardObj.RemoveNative(via)
-    
-        self.mainDlg.Destroy()  #the Dlg needs to be destroyed to release pcbnew
+            self.mainDlg = MainDialog(None)
+            self.selfToMainDialog()
+            reply = self.mainDlg.ShowModal()
+            if (reply == wx.ID_OK):
+                # User pressed OK.
+                # Assemble a list of pcbnew.BOARD_ITEMs derived objects that support GetStart/GetEnd and IsOnLayer
+                self.mainDialogToSelf()
+                lineObjects = []
+        
+                # Do we want to include net tracks?
+                if (self.isNetFilterChecked):
+                    # Find nets that match the generated regular expression and add their tracks to the list
+                    netRegex = self.regExFromSimpleEx(self.netFilter)
+                    for netId in self.netMap:
+                        if re.match(netRegex, self.netMap[netId].GetNetname()):
+                            for trackObject in self.boardObj.TracksInNet(netId):
+                                lineObjects += [trackObject]
+        
+                # Do we want to include drawing segments?
+                if (self.isIncludeDrawingChecked):
+                    boardItem = self.boardObj.GetDrawings().GetFirst()
+                    while boardItem is not None:
+                        if pcbnew.DRAWSEGMENT.ClassOf(boardItem):
+                            # A drawing segment (not a text or something else)
+                            drawingObject = boardItem.Cast()
+                            if drawingObject.GetShape() == pcbnew.S_SEGMENT:
+                                # A straight line
+                                lineObjects += [drawingObject]
+        
+                        boardItem = boardItem.Next()
+                
+                # Do we want to include track segments?
+                if (self.isIncludeSelectionChecked):
+                    for item in self.boardObj.GetTracks():
+                        if type(item) is pcbnew.TRACK and item.IsSelected():
+                            lineObjects += [item]
+                    
+                # Do we want to filter the generated lines by layer?
+                if (self.isLayerChecked):
+                    # Filter by layer
+                    # TODO: Make layer selection also a regex
+                    lineObjects = [lineObject for lineObject in lineObjects if lineObject.IsOnLayer(self.layerId)]
+        
+                # Generate a path list from the pcbnew.BOARD_ITEM objects
+                self.pathList =  [[ [lineObject.GetStart()[0], lineObject.GetStart()[1]],
+                                    [lineObject.GetEnd()[0],   lineObject.GetEnd()[1]]   ]
+                                    for lineObject in lineObjects]
+        
+                # Generate via fence
+                try:
+                    viaPoints = generateViaFence(self.pathList, self.viaOffset, self.viaPitch)
+                except:
+                    wx.LogMessage ('exception on via fence generation')
+                    viaPoints = []
+        
+                if (self.isDebugDumpChecked):
+                    self.viaPoints = viaPoints
+                    self.dumpJSON(os.path.join(self.boardPath, time.strftime("viafence-%Y%m%d-%H%M%S.json")))
+        
+                removed = False
+                if (self.isRemoveViasWithClearanceViolationChecked):
+                #if self.mainDlg.chkRemoveViasWithClearanceViolation.GetValue():
+                    # Remove Vias that violate clearance to other things
+                    # Check against other tracks
+                    #wx.LogMessage('hereIam')
+                    # removing generated & colliding vias
+                    viaPointsSafe = []
+                    for i,v in enumerate(viaPoints):
+                        #clearance = v.GetClearance()
+                        collision_found = False
+                        tolerance = 1 + 0.2 
+                        # This should be handled with Net Clearance
+                        for j, vn in enumerate(viaPoints[i+1:]):
+                            if distance (pcbnew.wxPoint(v[0], v[1]),pcbnew.wxPoint(vn[0], vn[1])) < int(self.viaSize*tolerance): # +clearance viasize+20%:
+                                collision_found = True
+                        if not collision_found:
+                            viaPointsSafe.append(v)
+                    self.viaPointsSafe = viaPointsSafe
+                    #wx.LogMessage(str(len(self.viaPointsSafe)))
+                    removed = self.checkPads()
+                    remvd = self.checkTracks()
+                    removed = removed or remvd
+                else:
+                    self.viaPointsSafe = viaPoints
+                #wx.LogMessage(str(len(self.viaPointsSafe)))
+                #self.checkPads()
+                #wx.LogMessage(str(len(self.viaPointsSafe)))
+                viaObjList = self.createVias(self.viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
+                via_nbr = len(self.viaPointsSafe)
+                msg = u'Placed {0:} Fencing Vias. \u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
+                if removed:
+                    msg += u'\nRemoved DRC \u26EC colliding vias.'
+                wx.LogMessage(msg)
+                #viaObjList = self.createVias(viaPoints, self.viaDrill, self.viaSize, self.viaNetId)
+                #via_nbr = len(viaPoints)
+                
+            
+            elif (reply == wx.ID_DELETE):
+                #user clicked ('Delete Fence Vias')
+                for via in self.boardObj.GetTracks():
+                    if via.Type() == pcbnew.PCB_VIA_T:
+                        if via.GetTimeStamp() == 55:
+                            self.boardObj.RemoveNative(via)
+        
+            self.mainDlg.Destroy()  #the Dlg needs to be destroyed to release pcbnew
 
 # TODO: Implement
 #            if (self.isRemoveViasWithClearanceViolationChecked):
