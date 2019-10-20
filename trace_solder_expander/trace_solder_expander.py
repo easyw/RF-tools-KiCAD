@@ -79,12 +79,13 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
     def __init__(self,  parent):
         SolderExpanderDlg.SolderExpanderDlg.__init__(self, parent)
         self.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
+        self.SetMinSize(self.GetSize())
     
 #
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\nversion 1.2"
+        self.name = "Solder Mask Expander for Tracks\nversion 1.3"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
