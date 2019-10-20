@@ -95,7 +95,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\nversion 1.6"
+        self.name = "Rounder for Tracks\nversion 1.7"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -488,12 +488,13 @@ def Round_Selection(pcb,distI,segments):
                     w3 = 3*float(width)
                     rad = float(ToMM(radius))
                     wxLogDebug(str(w3),debug)
-                    #msg = u'Corner Radius: {0:.3f} mm'.format(rad)
+                    msg = u'Corner Radius: {0:.3f} mm'.format(rad)
+                    msg+= u'\nAngle between tracks: {0:.1f} deg'.format(angle1-angle2)
                     if rad < w3:
-                        msg = u'Corner Radius: {0:.3f} mm'.format(rad) + u'\n\u2718 ALERT: Radius < 3 *(track width) !!!\n[{0:.3f}mm < 3*{1:.3f}mm]'.format(rad,width)
-                    else:
-                        #msg = u'\n\u2714 Radius > 3 * (track width)'
-                        msg = u'\u2714 Corner Radius: {0:.3f} mm'.format(rad)
+                        msg += u'\n\u2718 ALERT: Radius < 3 *(track width) !!!\n[{0:.3f}mm < 3*{1:.3f}mm]'.format(rad,width)
+                    #else:
+                    #    #msg = u'\n\u2714 Radius > 3 * (track width)'
+                    #    msg = u'\u2714 Corner Radius: {0:.3f} mm'.format(rad)
                     wxLogDebug(msg,True)
                     pcbnew.Refresh()
     # import round_trk; reload(round_trk)
