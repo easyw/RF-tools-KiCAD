@@ -85,7 +85,7 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\nversion 1.3"
+        self.name = "Solder Mask Expander for Tracks\nversion 1.4"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -100,7 +100,7 @@ class Solder_Expander(pcbnew.ActionPlugin):
     def CheckInput(self, value, data):
         val = None
         try:
-            val = float(value)
+            val = float(value.replace(',','.'))
             if val <= 0:
                 raise Exception("Invalid")
         except:
