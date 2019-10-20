@@ -8,11 +8,19 @@ import re
 import time
 import json
 import math
+import wx
 
 from collections import OrderedDict
 from .viafence import *
 from .viafence_dialogs import *
 
+debug = False
+
+def wxLogDebug(msg,show):
+    """printing messages only if show is omitted or True"""
+    if show:
+        wx.LogMessage(msg)
+# 
 
 def distance (p1,p2):
     return math.hypot(p1.y-p2.y,p1.x-p2.x)
@@ -20,7 +28,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.2"
+        self.name = "Via Fence Generator\nversion 1.3"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -102,6 +110,126 @@ class ViaFenceAction(pcbnew.ActionPlugin):
     def onDeleteClick(self, event):
         return self.mainDlg.EndModal(wx.ID_DELETE)
     
+    def checkPads(self):
+    ##Check vias collisions with all pads => all pads on all layers
+        #wxPrint("Processing all pads...")
+        self.clearance = 0 #TBF
+        #lboard = self.boardObj.ComputeBoundingBox(False)
+        #origin = lboard.GetPosition()
+        # Create an initial rectangle: all is set to "REASON_NO_SIGNAL"
+        # get a margin to avoid out of range
+        l_clearance = self.clearance #+ self.size
+        #x_limit = int((lboard.GetWidth() + l_clearance) / l_clearance) + 1
+        #y_limit = int((lboard.GetHeight() + l_clearance) / l_clearance) + 1
+        viasToRemove = []
+        removed = False
+        for pad in self.boardObj.GetPads():
+            #wx.LogMessage(str(self.viaPointsSafe))
+            #wx.LogMessage(str(pad.GetPosition()))
+            #local_offset = max(pad.GetClearance(), self.clearance, max_target_area_clearance) + (self.size / 2)
+            local_offset = max(pad.GetClearance(), self.clearance) + (self.viaSize / 2)
+            max_size = max(pad.GetSize().x, pad.GetSize().y)
+            
+            #start_x = int(floor(((pad.GetPosition().x - (max_size / 2.0 + local_offset)) - origin.x) / l_clearance))
+            #stop_x = int(ceil(((pad.GetPosition().x + (max_size / 2.0 + local_offset)) - origin.x) / l_clearance))
+            
+            #start_y = int(floor(((pad.GetPosition().y - (max_size / 2.0 + local_offset)) - origin.y) / l_clearance))
+            #stop_y = int(ceil(((pad.GetPosition().y + (max_size / 2.0 + local_offset)) - origin.y) / l_clearance))
+            
+            #for x in range(start_x, stop_x + 1):
+            #    for y in range(start_y, stop_y + 1):
+            for viaPos in self.viaPointsSafe:
+                if 1: #try:
+                    #if isinstance(rectangle[x][y], ViaObject):
+                    #start_rect = wxPoint(origin.x + (l_clearance * x) - local_offset,
+                    #                     origin.y + (l_clearance * y) - local_offset)
+                    start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
+                                        viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
+                    size_rect = pcbnew.wxSize(2 * local_offset, 2 * local_offset)
+                    #wx.LogMessage(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)))
+                    if pad.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
+                        #rectangle[x][y] = self.REASON_PAD
+                        wxLogDebug('Hit on Pad: viaPos:'+str(viaPos),debug)
+                        #self.viaPointsSafe.pop(i)
+                        #self.viaPointsSafe.remove(viaPos)
+                        viasToRemove.append(viaPos)
+                        removed = True
+                    #else:
+                    #    viaPSafe.append(viaPos)
+                else: #except:
+                    wx.LogMessage("exception on Processing all pads...")
+                #i+=1
+            #self.viaPointSafe = viaPSafe
+        #wx.LogMessage(str(viasToRemove))
+        newPoints = [p for p in self.viaPointsSafe if p not in viasToRemove]
+        #wx.LogMessage(str(newPoints))
+        #wx.LogMessage(str(len(newPoints)))
+        self.viaPointsSafe = newPoints
+        return removed
+        
+    def checkTracks(self):
+    ##Check vias collisions with all tracks
+        self.clearance = 0 #TBF
+        #lboard = self.boardObj.ComputeBoundingBox(False)
+        #origin = lboard.GetPosition()
+        # Create an initial rectangle: all is set to "REASON_NO_SIGNAL"
+        # get a margin to avoid out of range
+        l_clearance = self.clearance #+ self.size
+        #x_limit = int((lboard.GetWidth() + l_clearance) / l_clearance) + 1
+        #y_limit = int((lboard.GetHeight() + l_clearance) / l_clearance) + 1
+        viasToRemove = []
+        removed = False
+        for track in self.boardObj.GetTracks():
+            #wx.LogMessage(str(self.viaPointsSafe))
+            #wx.LogMessage(str(pad.GetPosition()))
+            #local_offset = max(pad.GetClearance(), self.clearance, max_target_area_clearance) + (self.size / 2)
+            local_offset = max(track.GetClearance(), self.clearance) + (self.viaSize / 2)
+            #max_size = max(pad.GetSize().x, pad.GetSize().y)
+            
+            #start_x = int(floor(((pad.GetPosition().x - (max_size / 2.0 + local_offset)) - origin.x) / l_clearance))
+            #stop_x = int(ceil(((pad.GetPosition().x + (max_size / 2.0 + local_offset)) - origin.x) / l_clearance))
+            
+            #start_y = int(floor(((pad.GetPosition().y - (max_size / 2.0 + local_offset)) - origin.y) / l_clearance))
+            #stop_y = int(ceil(((pad.GetPosition().y + (max_size / 2.0 + local_offset)) - origin.y) / l_clearance))
+            
+            #for x in range(start_x, stop_x + 1):
+            #    for y in range(start_y, stop_y + 1):
+            for viaPos in self.viaPointsSafe:
+                if 1: #try:
+                    #if isinstance(rectangle[x][y], ViaObject):
+                    #start_rect = wxPoint(origin.x + (l_clearance * x) - local_offset,
+                    #                     origin.y + (l_clearance * y) - local_offset)
+                    start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
+                                        viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
+                    size_rect = pcbnew.wxSize(2 * local_offset, 2 * local_offset)
+                    #wx.LogMessage(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)))
+                    if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
+                        #rectangle[x][y] = self.REASON_PAD
+                        wxLogDebug('Hit on Track: viaPos:'+str(viaPos),debug)
+                        #self.viaPointsSafe.pop(i)
+                        #self.viaPointsSafe.remove(viaPos)
+                        viasToRemove.append(viaPos)
+                        removed = True
+                    #else:
+                    #    viaPSafe.append(viaPos)
+                else: #except:
+                    wx.LogMessage("exception on Processing all tracks...")
+                #i+=1
+            #self.viaPointSafe = viaPSafe
+        #wx.LogMessage(str(viasToRemove))
+        newPoints = [p for p in self.viaPointsSafe if p not in viasToRemove]
+        #wx.LogMessage(str(newPoints))
+        #wx.LogMessage(str(len(newPoints)))
+        self.viaPointsSafe = newPoints
+        return removed
+# ------------------------------------------------------------------------------------
+    
+    def DoKeyPress(self, event):
+        if event.GetKeyCode() == wx.WXK_RETURN: 
+            self.mainDlg.EndModal(wx.ID_OK)
+        else:
+            event.Skip()
+    
     def selfToMainDialog(self):
         self.mainDlg.lstLayer.SetItems(list(self.layerMap.values()))  #maui
         self.mainDlg.lstLayer.SetSelection(self.layerId)
@@ -111,6 +239,12 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         self.mainDlg.txtViaPitch.SetValue(str(pcbnew.ToMM(self.viaPitch)))
         self.mainDlg.txtViaDrill.SetValue(str(pcbnew.ToMM(self.viaDrill)))
         self.mainDlg.txtViaSize.SetValue(str(pcbnew.ToMM(self.viaSize)))
+        self.mainDlg.txtViaOffset.Bind(wx.EVT_KEY_DOWN, self.DoKeyPress)
+        #self.mainDlg.txtViaOffset.Bind(wx.EVT_TEXT_ENTER, self.mainDlg.EndModal(wx.ID_OK))
+        self.mainDlg.txtViaPitch.Bind(wx.EVT_KEY_DOWN, self.DoKeyPress)
+        self.mainDlg.txtViaDrill.Bind(wx.EVT_KEY_DOWN, self.DoKeyPress)
+        self.mainDlg.txtViaSize.Bind(wx.EVT_KEY_DOWN, self.DoKeyPress)
+        
         self.mainDlg.lstViaNet.SetItems([item.GetNetname() for item in self.netMap.values()])
         for i, item  in enumerate (self.netMap.values()):
             if self.mainDlg.lstViaNet.GetString(i) in ["GND", "/GND"]:
@@ -127,7 +261,7 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         self.mainDlg.chkSameNetZoneViasOnly.SetValue(self.isSameNetZoneViasOnlyChecked)
         self.mainDlg.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
         # hiding unimplemented controls
-        self.mainDlg.chkRemoveViasWithClearanceViolation.Hide()
+        #self.mainDlg.chkRemoveViasWithClearanceViolation.Hide()
         self.mainDlg.chkSameNetZoneViasOnly.Hide()
 
     def mainDialogToSelf(self):
@@ -232,7 +366,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 self.viaPoints = viaPoints
                 self.dumpJSON(os.path.join(self.boardPath, time.strftime("viafence-%Y%m%d-%H%M%S.json")))
     
+            removed = False
             if (self.isRemoveViasWithClearanceViolationChecked):
+            #if self.mainDlg.chkRemoveViasWithClearanceViolation.GetValue():
                 # Remove Vias that violate clearance to other things
                 # Check against other tracks
                 #wx.LogMessage('hereIam')
@@ -248,10 +384,22 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                             collision_found = True
                     if not collision_found:
                         viaPointsSafe.append(v)
-            
-            viaObjList = self.createVias(viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
-            via_nbr = len(viaPointsSafe)
-            wx.LogMessage(u'Placed {0:} Fencing Vias. \u26A0 Please run a DRC check on your board. \u26A0'.format(str(via_nbr)))
+                self.viaPointsSafe = viaPointsSafe
+                #wx.LogMessage(str(len(self.viaPointsSafe)))
+                removed = self.checkPads()
+                remvd = self.checkTracks()
+                removed = removed or remvd
+            else:
+                self.viaPointsSafe = viaPoints
+            #wx.LogMessage(str(len(self.viaPointsSafe)))
+            #self.checkPads()
+            #wx.LogMessage(str(len(self.viaPointsSafe)))
+            viaObjList = self.createVias(self.viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
+            via_nbr = len(self.viaPointsSafe)
+            msg = u'Placed {0:} Fencing Vias. \u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
+            if removed:
+                msg += u'\nRemoved DRC \u26EC colliding vias.'
+            wx.LogMessage(msg)
             #viaObjList = self.createVias(viaPoints, self.viaDrill, self.viaSize, self.viaNetId)
             #via_nbr = len(viaPoints)
             

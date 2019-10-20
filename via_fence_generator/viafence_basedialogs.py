@@ -45,7 +45,7 @@ class MainDialogBase ( wx.Dialog ):
 
 		fgSizer4.Add( self.m_staticText11, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-		self.txtViaOffset = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_RIGHT )
+		self.txtViaOffset = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER|wx.TE_RIGHT )
 		fgSizer4.Add( self.txtViaOffset, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_staticText21 = wx.StaticText( sbSizer2.GetStaticBox(), wx.ID_ANY, u"Pitch (mm):", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -53,7 +53,7 @@ class MainDialogBase ( wx.Dialog ):
 
 		fgSizer4.Add( self.m_staticText21, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-		self.txtViaPitch = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_RIGHT )
+		self.txtViaPitch = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER|wx.TE_RIGHT )
 		fgSizer4.Add( self.txtViaPitch, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_staticText13 = wx.StaticText( sbSizer2.GetStaticBox(), wx.ID_ANY, u"Via Drill (mm):", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -61,7 +61,7 @@ class MainDialogBase ( wx.Dialog ):
 
 		fgSizer4.Add( self.m_staticText13, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-		self.txtViaDrill = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_RIGHT )
+		self.txtViaDrill = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER|wx.TE_RIGHT )
 		fgSizer4.Add( self.txtViaDrill, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_staticText14 = wx.StaticText( sbSizer2.GetStaticBox(), wx.ID_ANY, u"Via Size (mm):", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -69,7 +69,7 @@ class MainDialogBase ( wx.Dialog ):
 
 		fgSizer4.Add( self.m_staticText14, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-		self.txtViaSize = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_RIGHT )
+		self.txtViaSize = wx.TextCtrl( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER|wx.TE_RIGHT )
 		fgSizer4.Add( self.txtViaSize, 0, wx.EXPAND|wx.ALL, 5 )
 
 		self.m_staticText23 = wx.StaticText( sbSizer2.GetStaticBox(), wx.ID_ANY, u"Via Net:", wx.DefaultPosition, wx.DefaultSize, 0 )
