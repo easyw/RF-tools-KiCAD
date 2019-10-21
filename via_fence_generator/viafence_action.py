@@ -21,6 +21,10 @@ def wxLogDebug(msg,show):
     if show:
         wx.LogMessage(msg)
 # 
+def getTrackAngleRadians(track):
+    #return math.degrees(math.atan2((p1.y-p2.y),(p1.x-p2.x)))
+    return (math.atan2((track.GetEnd().y - track.GetStart().y), (track.GetEnd().x - track.GetStart().x)))
+#
 
 def distance (p1,p2):
     return math.hypot(p1.y-p2.y,p1.x-p2.x)
@@ -28,7 +32,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.7"
+        self.name = "Via Fence Generator\nversion 1.8"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -202,6 +206,14 @@ class ViaFenceAction(pcbnew.ActionPlugin):
             
             #for x in range(start_x, stop_x + 1):
             #    for y in range(start_y, stop_y + 1):
+            #wx.LogMessage(str(getTrackAngleRadians(track)))
+            angle = abs(math.degrees(getTrackAngleRadians(track)))
+            if (angle > 15 and angle <75) or (angle > 105 and angle <165) or (angle > 195 and angle <255) or (angle > 285 and angle <345):
+                expansion = 1.4 # extra expansion to fix HitTest
+                #wx.LogMessage(str(angle)+'::'+str(expansion))
+            else:
+                expansion = 2.0 # extra expansion to fix HitTest
+                #wx.LogMessage(str(angle)+'::'+str(expansion))
             for viaPos in self.viaPointsSafe:
                 if 1: #try:
                     #if isinstance(rectangle[x][y], ViaObject):
