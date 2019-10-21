@@ -28,7 +28,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.5"
+        self.name = "Via Fence Generator\nversion 1.6"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -113,12 +113,13 @@ class ViaFenceAction(pcbnew.ActionPlugin):
     def checkPads(self):
     ##Check vias collisions with all pads => all pads on all layers
         #wxPrint("Processing all pads...")
-        self.clearance = 0 #TBF
+        #self.clearance = 0 #TBF
+        self.clearance = self.boardObj.GetDesignSettings().GetDefault().GetClearance()
         #lboard = self.boardObj.ComputeBoundingBox(False)
         #origin = lboard.GetPosition()
         # Create an initial rectangle: all is set to "REASON_NO_SIGNAL"
         # get a margin to avoid out of range
-        l_clearance = self.clearance #+ self.size
+        l_clearance = self.clearance + self.viaSize #+ self.size
         #x_limit = int((lboard.GetWidth() + l_clearance) / l_clearance) + 1
         #y_limit = int((lboard.GetHeight() + l_clearance) / l_clearance) + 1
         viasToRemove = []
@@ -143,10 +144,12 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     #if isinstance(rectangle[x][y], ViaObject):
                     #start_rect = wxPoint(origin.x + (l_clearance * x) - local_offset,
                     #                     origin.y + (l_clearance * y) - local_offset)
-                    start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
-                                        viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
+                    #start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
+                    #                    viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
+                    start_rect = pcbnew.wxPoint(viaPos[0] - local_offset,
+                                        viaPos[1] - local_offset)
                     size_rect = pcbnew.wxSize(2 * local_offset, 2 * local_offset)
-                    #wx.LogMessage(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)))
+                    wxLogDebug(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)),debug)
                     if pad.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
                         #rectangle[x][y] = self.REASON_PAD
                         wxLogDebug('Hit on Pad: viaPos:'+str(viaPos),debug)
@@ -169,12 +172,14 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         
     def checkTracks(self):
     ##Check vias collisions with all tracks
-        self.clearance = 0 #TBF
+        #self.clearance = 0 #TBF
+        self.clearance = self.boardObj.GetDesignSettings().GetDefault().GetClearance()
         #lboard = self.boardObj.ComputeBoundingBox(False)
         #origin = lboard.GetPosition()
         # Create an initial rectangle: all is set to "REASON_NO_SIGNAL"
         # get a margin to avoid out of range
-        l_clearance = self.clearance #+ self.size
+        l_clearance = self.clearance + self.viaSize #+ self.size
+        #wxLogDebug(str(l_clearance),True)
         #x_limit = int((lboard.GetWidth() + l_clearance) / l_clearance) + 1
         #y_limit = int((lboard.GetHeight() + l_clearance) / l_clearance) + 1
         viasToRemove = []
@@ -184,6 +189,7 @@ class ViaFenceAction(pcbnew.ActionPlugin):
             #wx.LogMessage(str(pad.GetPosition()))
             #local_offset = max(pad.GetClearance(), self.clearance, max_target_area_clearance) + (self.size / 2)
             local_offset = max(track.GetClearance(), self.clearance) + (self.viaSize / 2)
+            #wxLogDebug(str(max_size),True)
             #max_size = max(pad.GetSize().x, pad.GetSize().y)
             
             #start_x = int(floor(((pad.GetPosition().x - (max_size / 2.0 + local_offset)) - origin.x) / l_clearance))
@@ -199,10 +205,12 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     #if isinstance(rectangle[x][y], ViaObject):
                     #start_rect = wxPoint(origin.x + (l_clearance * x) - local_offset,
                     #                     origin.y + (l_clearance * y) - local_offset)
-                    start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
-                                        viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
+                    #start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
+                    #                    viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
+                    start_rect = pcbnew.wxPoint(viaPos[0] - local_offset,
+                                        viaPos[1] - local_offset)
                     size_rect = pcbnew.wxSize(2 * local_offset, 2 * local_offset)
-                    #wx.LogMessage(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)))
+                    wxLogDebug(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)),debug)
                     if track.GetNetCode() != self.viaNetId or type(track) != pcbnew.TRACK: #PCB_VIA_T:
                         if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
                             #rectangle[x][y] = self.REASON_PAD
