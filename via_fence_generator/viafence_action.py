@@ -28,7 +28,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.6"
+        self.name = "Via Fence Generator\nversion 1.7"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -124,6 +124,7 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         #y_limit = int((lboard.GetHeight() + l_clearance) / l_clearance) + 1
         viasToRemove = []
         removed = False
+        expansion = 1.6 # extra expansion to fix HitTest
         for pad in self.boardObj.GetPads():
             #wx.LogMessage(str(self.viaPointsSafe))
             #wx.LogMessage(str(pad.GetPosition()))
@@ -146,9 +147,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     #                     origin.y + (l_clearance * y) - local_offset)
                     #start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
                     #                    viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
-                    start_rect = pcbnew.wxPoint(viaPos[0] - local_offset,
-                                        viaPos[1] - local_offset)
-                    size_rect = pcbnew.wxSize(2 * local_offset, 2 * local_offset)
+                    start_rect = pcbnew.wxPoint(viaPos[0] - local_offset*expansion,
+                                        viaPos[1] - local_offset*expansion)
+                    size_rect = pcbnew.wxSize(2 * expansion * local_offset, 2 * expansion * local_offset)
                     wxLogDebug(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)),debug)
                     if pad.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
                         #rectangle[x][y] = self.REASON_PAD
@@ -184,6 +185,7 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         #y_limit = int((lboard.GetHeight() + l_clearance) / l_clearance) + 1
         viasToRemove = []
         removed = False
+        expansion = 2 # extra expansion to fix HitTest
         for track in self.boardObj.GetTracks():
             #wx.LogMessage(str(self.viaPointsSafe))
             #wx.LogMessage(str(pad.GetPosition()))
@@ -207,12 +209,18 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     #                     origin.y + (l_clearance * y) - local_offset)
                     #start_rect = pcbnew.wxPoint(viaPos[0] + (l_clearance * viaPos[0]) - local_offset,
                     #                    viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
-                    start_rect = pcbnew.wxPoint(viaPos[0] - local_offset,
-                                        viaPos[1] - local_offset)
-                    size_rect = pcbnew.wxSize(2 * local_offset, 2 * local_offset)
+                    start_rect = pcbnew.wxPoint(viaPos[0] - local_offset*expansion,
+                                        viaPos[1] - local_offset*expansion)
+                    size_rect = pcbnew.wxSize(2 * expansion * local_offset, 2 * expansion * local_offset)
                     wxLogDebug(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)),debug)
+                    #wxLogDebug(str(track.GetNetCode()),True)
+                    #wxLogDebug(str(self.viaNetId),True)
+                    #wxLogDebug(str(type(track)),True)
                     if track.GetNetCode() != self.viaNetId or type(track) != pcbnew.TRACK: #PCB_VIA_T:
-                        if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
+                        #wxLogDebug('here',True)
+                        #if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
+                        aContained=False;aAccuracy=0
+                        if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), aContained, aAccuracy):
                             #rectangle[x][y] = self.REASON_PAD
                             wxLogDebug('Hit on Track: viaPos:'+str(viaPos),debug)
                             #self.viaPointsSafe.pop(i)
