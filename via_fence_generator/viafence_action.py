@@ -28,7 +28,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.4"
+        self.name = "Via Fence Generator\nversion 1.5"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -203,15 +203,16 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                                         viaPos[1] + (l_clearance * viaPos[1]) - local_offset)
                     size_rect = pcbnew.wxSize(2 * local_offset, 2 * local_offset)
                     #wx.LogMessage(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)))
-                    if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
-                        #rectangle[x][y] = self.REASON_PAD
-                        wxLogDebug('Hit on Track: viaPos:'+str(viaPos),debug)
-                        #self.viaPointsSafe.pop(i)
-                        #self.viaPointsSafe.remove(viaPos)
-                        viasToRemove.append(viaPos)
-                        removed = True
-                    #else:
-                    #    viaPSafe.append(viaPos)
+                    if track.GetNetCode() != self.viaNetId or type(track) != pcbnew.TRACK: #PCB_VIA_T:
+                        if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
+                            #rectangle[x][y] = self.REASON_PAD
+                            wxLogDebug('Hit on Track: viaPos:'+str(viaPos),debug)
+                            #self.viaPointsSafe.pop(i)
+                            #self.viaPointsSafe.remove(viaPos)
+                            viasToRemove.append(viaPos)
+                            removed = True
+                        #else:
+                        #    viaPSafe.append(viaPos)
                 else: #except:
                     wx.LogMessage("exception on Processing all tracks...")
                 #i+=1
