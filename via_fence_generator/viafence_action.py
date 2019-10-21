@@ -434,9 +434,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 #wx.LogMessage(str(len(self.viaPointsSafe)))
                 viaObjList = self.createVias(self.viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
                 via_nbr = len(self.viaPointsSafe)
-                msg = u'Placed {0:} Fencing Vias. \u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
+                msg = u'Placed {0:} Fencing Vias.\n\u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
                 if removed:
-                    msg += u'\nRemoved DRC \u26EC colliding vias.'
+                    msg += u'\n\u26EC Removed DRC colliding vias.'
                 wx.LogMessage(msg)
                 #viaObjList = self.createVias(viaPoints, self.viaDrill, self.viaSize, self.viaNetId)
                 #via_nbr = len(viaPoints)
