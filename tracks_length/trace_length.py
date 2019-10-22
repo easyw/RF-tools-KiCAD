@@ -66,11 +66,15 @@ def selectListTracks(pcb,tracks):
         if type(item) is TRACK:
             item.SetSelected()
 #
+def getTrackAngleRadians(track):
+    #return math.degrees(math.atan2((p1.y-p2.y),(p1.x-p2.x)))
+    return (math.atan2((track.GetEnd().y - track.GetStart().y), (track.GetEnd().x - track.GetStart().x)))
+#
 
 # Python plugin stuff
 class SelectedTracesLenght(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Measure Length for Selected Tracks\nversion 1.1"
+        self.name = "Measure Length for Selected Tracks\nversion 1.2"
         self.category = "Modify PCB"
         self.description = "Measure Length for Selected Tracks"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./trace_length.png")
@@ -105,9 +109,13 @@ class SelectedTracesLenght(pcbnew.ActionPlugin):
             #wx.LogMessage('Selected Traces Length: {0:.3f} mm'.format(ToMM(ln)))
             wxLogDebug('showing Selected Tracks',debug)
             #wx.LogMessage('debug'+str(debug))
+            msg = u"Selected Tracks Length:\n{0:.3f} mm \u2714".format(ToMM(ln))
+            if len(tracks) == 1:
+                angle = (math.degrees(getTrackAngleRadians(tracks[0])))
+                msg+=u"\nTrack Angle: {0:.1f} deg \u2714".format(angle)
             #selectListTracks(pcb,tracks)
             #pcbnew.Refresh()
-            wdlg = wx.MessageDialog(None, u"Selected Tracks Length:\n{0:.3f} mm \u2714".format(ToMM(ln)),'Info message',wx.OK | wx.ICON_INFORMATION)
+            wdlg = wx.MessageDialog(None, msg,'Info message',wx.OK | wx.ICON_INFORMATION)
             result = wdlg.ShowModal()
             if result == wx.ID_OK:
                 pass
