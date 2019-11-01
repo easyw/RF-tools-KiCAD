@@ -32,7 +32,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 1.9"
+        self.name = "Via Fence Generator\nversion 2.0"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -317,12 +317,33 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         try:
             import pyclipper
             pyclip = True
+            # import pyclipper; pyclipper.__file__
         except:
             #error exception if pyclipper lib is missing
-            wdlg = wx.MessageDialog(None, u"\u2718 ERROR Missing KiCAD \'pyclipper\' python module",'ERROR message',wx.OK | wx.ICON_WARNING)# wx.ICON_ERROR)
-            result = wdlg.ShowModal()
+            import sys, os
+            from sys import platform as _platform
+            if _platform == "linux" or _platform == "linux2":
+                # linux
+                if sys.version_info.major == 3 and sys.version_info.minor == 6:
+                    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),'python-pyclipper','py3-6-linux-64'))
+                    #wx.LogMessage(os.path.join(os.path.dirname(os.path.abspath(__file__)),'python-pyclipper','py3-6-linux-64'))
+                elif sys.version_info.major == 2 and sys.version_info.minor == 7:
+                    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),'python-pyclipper','py2-7-linux-64'))
+            elif _platform == "darwin":
+                #osx
+                sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),'python-pyclipper','py2-7-mac-64'))
+            else:
+                #win
+                sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),'python-pyclipper','py2-7-win-64'))
+            try:
+                import pyclipper
+                pyclip = True
+            except:
+                wdlg = wx.MessageDialog(None, u"\u2718 ERROR Missing KiCAD \'pyclipper\' python module",'ERROR message',wx.OK | wx.ICON_WARNING)# wx.ICON_ERROR)
+                result = wdlg.ShowModal()
         if pyclip:
         #import pyclipper
+            import os
             self.boardObj = pcbnew.GetBoard()
             self.boardDesignSettingsObj = self.boardObj.GetDesignSettings()
             self.boardPath = os.path.dirname(os.path.realpath(self.boardObj.GetFileName()))
