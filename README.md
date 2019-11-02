@@ -51,9 +51,11 @@ Simply launch the fotprint wizard and select the uwave tool:
 <hr>
 <h2>Siblings/suggested plugins:</h2>
 <br>
-[**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
-![Via Stitching Generator](resources/extras/stitching-vias-help.png?raw=true "via stitching")
-
+[Via Stitching Generator](https://github.com/easyw/kicad-action-scripts)
 <br>
-[**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
+![Via Stitching Generator](resources/extras/stitching-vias-help.png?raw=true "via stitching")
+<br>
+<br>
+[Via Teardrops Generator](https://github.com/NilujePerchut/kicad_scripts)
+<br>
 ![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
