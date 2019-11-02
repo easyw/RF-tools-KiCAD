@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="27.733334"
+   width="27.733334"
+   version="1.1"
+   id="svg2"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="stitching-vias-green-2.svg"
+   viewBox="0 0 26 26"
+   inkscape:export-filename="C:\kicad-wb-1602\msys64\home\userC\RF-round-diff\new-solder-mask\bitmaps_png\sources\soldermask_clearance-26.png"
+   inkscape:export-xdpi="82.105263"
+   inkscape:export-ydpi="82.105263">
+  <metadata
+     id="metadata40">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1600"
+     inkscape:window-height="824"
+     id="namedview38"
+     showgrid="true"
+     inkscape:snap-to-guides="false"
+     inkscape:snap-grids="true"
+     inkscape:zoom="7.2765875"
+     inkscape:cx="-6.0737825"
+     inkscape:cy="19.890843"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3017"
+       empspacing="2"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       spacingx="0.5"
+       spacingy="0.5"
+       originx="0"
+       originy="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs4">
+    <filter
+       id="c"
+       height="1.3651"
+       width="1.2097"
+       y="-0.18257"
+       x="-0.10484"
+       style="color-interpolation-filters:sRGB">
+      <feGaussianBlur
+         stdDeviation="1.5978799"
+         id="feGaussianBlur7" />
+    </filter>
+    <filter
+       id="d"
+       height="1.4696"
+       width="1.4809999"
+       y="-0.23481999"
+       x="-0.24049"
+       style="color-interpolation-filters:sRGB">
+      <feGaussianBlur
+         stdDeviation="1.5978799"
+         id="feGaussianBlur10" />
+    </filter>
+  </defs>
+  <rect
+     style="fill:#008000;fill-opacity:1;stroke:none;stroke-width:0.9375;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.99997282;stroke-opacity:1"
+     id="rect4495"
+     width="26"
+     height="26"
+     x="-1.0458432e-15"
+     y="1.7763568e-15"
+     inkscape:export-filename="C:\kicad-wb-1602\msys64\home\userC\RF-round-diff\new-solder-mask\bitmaps_png\sources\stitching-vias.png"
+     inkscape:export-xdpi="82.105263"
+     inkscape:export-ydpi="82.105263" />
+  <g
+     transform="matrix(1.6382539,0,0,1.5572263,1.2572207,0.36314149)"
+     id="g16"
+     inkscape:export-xdpi="82.105263"
+     inkscape:export-ydpi="82.105263"
+     inkscape:export-filename="C:\kicad-wb-1602\msys64\home\userC\RF-round-diff\new-solder-mask\bitmaps_png\sources\stitching-vias.png">
+    <rect
+       height="16"
+       width="16"
+       y="0"
+       x="0"
+       id="rect18"
+       style="fill-opacity:0" />
+  </g>
+  <rect
+     style="opacity:0.25;fill:#008000;fill-opacity:1;stroke:#b3b3b3;stroke-width:2.24165964;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.99997282;stroke-opacity:1"
+     id="rect4737"
+     width="26"
+     height="26"
+     x="0"
+     y="1.7193647e-08"
+     inkscape:export-filename="C:\kicad-wb-1602\msys64\home\userC\RF-round-diff\new-solder-mask\bitmaps_png\sources\stitching-vias.png"
+     inkscape:export-xdpi="82.105263"
+     inkscape:export-ydpi="82.105263" />
+  <g
+     id="g845"
+     transform="translate(28,-6.000001)">
+    <path
+       sodipodi:nodetypes="sssss"
+       inkscape:export-ydpi="82.105263"
+       inkscape:export-xdpi="82.105263"
+       inkscape:connector-curvature="0"
+       id="path3867-9-4-36"
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ffcc00;stroke-width:2.4375;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m -18.5,13.625001 c 0,-1.932997 1.567003,-3.5 3.5,-3.5 1.932998,0 3.5,1.567003 3.5,3.5 0,1.932997 -1.567002,3.5 -3.5,3.5 -1.932997,0 -3.5,-1.567003 -3.5,-3.5 z" />
+    <path
+       sodipodi:nodetypes="sssss"
+       inkscape:export-ydpi="82.105263"
+       inkscape:export-xdpi="82.105263"
+       inkscape:connector-curvature="0"
+       id="path3867-9-4-6"
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ffcc00;stroke-width:2.4375;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m -12.75,24.250001 c 0,-1.932996 1.567003,-3.499999 3.500001,-3.499999 1.932996,0 3.499999,1.567003 3.499999,3.499999 0,1.932998 -1.567003,3.500001 -3.499999,3.500001 -1.932998,0 -3.500001,-1.567003 -3.500001,-3.500001 z" />
+    <path
+       sodipodi:nodetypes="sssss"
+       inkscape:export-ydpi="82.105263"
+       inkscape:export-xdpi="82.105263"
+       inkscape:connector-curvature="0"
+       id="path3867-9-4-3"
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ffcc00;stroke-width:2.4375;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m -24.25,24.375001 c 0,-1.932997 1.567003,-3.5 3.5,-3.5 1.932997,0 3.5,1.567003 3.5,3.5 0,1.932997 -1.567003,3.5 -3.5,3.5 -1.932997,0 -3.5,-1.567003 -3.5,-3.5 z" />
+  </g>
+</svg>

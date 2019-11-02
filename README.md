@@ -1,12 +1,13 @@
 # RF-Tools for KiCAD
-compatibility: KiCAD 5.1.4
+**compatibility: KiCAD 5.1.4**
 
-* **Rounder tools for tracks** (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
+##**Rounder tools for tracks**
+(to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 
     * Rounder for tracks (*Action Plugin*)
     * Solder Mask Expander (*Action Plugin*)
     * Track Length (*Action Plugin*)
-    * Via Fence Generator (*Action Plugin*)
+    * Via Fence Generator (*Action Plugin*) [pyclipper required]
 
 <br/>
 
@@ -25,9 +26,9 @@ compatibility: KiCAD 5.1.4
 [![Via Fence Generator](resources/via-fencing-preview.png?raw=true "Via Fence Generator")](resources/via-fencing.png?raw=true "Via Fence Generator")
 
 <br/>
-<br/>
-
-* **Footprint Wizards:** (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
+<hr>
+##**Footprint Wizards:**
+(to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 	* microwave RF Arc footprint wizard
 	* microwave RF Mitered footprint wizard
 	* microwave RF Taper footprint wizard
@@ -42,3 +43,13 @@ compatibility: KiCAD 5.1.4
 Simply launch the fotprint wizard and select the uwave tool:
 
 ![microwave RF Wizards](resources/uw-footprint-wizards.png?raw=true "microwave RF Wizards")
+
+<br>
+<hr>
+##**Siblings/suggested plugins:**<br>
+###[**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
+![Via Stitching Generator](resources/extras/stitching-vias-help.png?raw=true "via stitching")
+
+
+###[**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
+![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
