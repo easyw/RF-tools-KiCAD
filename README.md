@@ -28,7 +28,7 @@
 
 <br/>
 <hr>
-**<h2>Footprint Wizards:</h2>**
+<h2>Footprint Wizards:</h2>
 
 (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 
@@ -49,10 +49,11 @@ Simply launch the fotprint wizard and select the uwave tool:
 
 <br>
 <hr>
-**<h2>Siblings/suggested plugins:</h2>**<br>
-### [**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
+<h2>Siblings/suggested plugins:</h2>
+<br>
+[**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
 ![Via Stitching Generator](resources/extras/stitching-vias-help.png?raw=true "via stitching")
 
 <br>
-### [**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
+[**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
 ![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
