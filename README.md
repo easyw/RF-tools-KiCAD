@@ -1,7 +1,7 @@
 # RF-Tools for KiCAD
 **compatibility: KiCAD 5.1.4**
 
-##**Rounder tools for tracks**
+## **Rounder tools for tracks**
 (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 
     * Rounder for tracks (*Action Plugin*)
@@ -27,7 +27,7 @@
 
 <br/>
 <hr>
-##**Footprint Wizards:**
+## **Footprint Wizards:**
 (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 	* microwave RF Arc footprint wizard
 	* microwave RF Mitered footprint wizard
@@ -46,10 +46,10 @@ Simply launch the fotprint wizard and select the uwave tool:
 
 <br>
 <hr>
-##**Siblings/suggested plugins:**<br>
-###[**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
+## **Siblings/suggested plugins:**<br>
+### [**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
 ![Via Stitching Generator](resources/extras/stitching-vias-help.png?raw=true "via stitching")
 
 
-###[**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
+### [**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
 ![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
