@@ -1,7 +1,7 @@
 # RF-Tools for KiCAD
 **compatibility: KiCAD 5.1.4**
 
-<h2> **Rounder tools for tracks**
+**<h2>Rounder tools for tracks**
 
 (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 
@@ -28,7 +28,7 @@
 
 <br/>
 <hr>
-<h2> **Footprint Wizards:**
+**<h2>Footprint Wizards:**
 
 (to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
 
@@ -49,10 +49,10 @@ Simply launch the fotprint wizard and select the uwave tool:
 
 <br>
 <hr>
-<h2> **Siblings/suggested plugins:**<br>
-<h3> [**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
+**<h2>Siblings/suggested plugins:**<br>
+<h3>[**Via Stitching Generator**](https://github.com/easyw/kicad-action-scripts)
 ![Via Stitching Generator](resources/extras/stitching-vias-help.png?raw=true "via stitching")
 
 
-<h3> [**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
+<h3>[**Via Teardrops Generator**](https://github.com/NilujePerchut/kicad_scripts)
 ![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
