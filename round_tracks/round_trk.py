@@ -95,7 +95,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\nversion 1.8"
+        self.name = "Rounder for Tracks\nversion 1.9"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -377,16 +377,27 @@ def getCircleCenterRadius(sp,ep,ip):
     return wxPoint(Cx,Cy), radius
 #
 def deleteSelectedTracks(pcb):
-    for item in pcb.GetTracks():
-        if type(item) is TRACK and item.IsSelected(): #item.GetNetname() == net_name:
-            pcb.RemoveNative(item)
-            #pcb.Delete(item)
+    tracks = pcb.GetTracks()
+    tracks_cp = list(tracks)
+    l = len (tracks_cp)
+    for i in range(l):
+        if type(tracks_cp[i]) is TRACK and tracks_cp[i].IsSelected(): #item.GetNetname() == net_name:
+            pcb.RemoveNative(tracks_cp[i])
+    #for item in pcb.GetTracks():
+    #    if type(item) is TRACK and item.IsSelected(): #item.GetNetname() == net_name:
+    #        pcb.RemoveNative(item)
+    #        #pcb.Delete(item)
 #
 def deleteListTracks(pcb,tracks):
-    for item in tracks:
-        if type(item) is TRACK: #item.GetNetname() == net_name:
-            pcb.RemoveNative(item)
-            #pcb.Delete(item)
+    tracksToDel_cp = list(tracks)
+    l = len (tracksToDel_cp)
+    for i in range(l):
+        if type(tracksToDel_cp[i]) is TRACK: #item.GetNetname() == net_name:
+            pcb.RemoveNative(tracksToDel_cp[i])
+    #for item in tracks:
+    #    if type(item) is TRACK: #item.GetNetname() == net_name:
+    #        pcb.RemoveNative(item)
+    #        #pcb.Delete(item)
 #
 def selectListTracks(pcb,tracks):
     for item in tracks:

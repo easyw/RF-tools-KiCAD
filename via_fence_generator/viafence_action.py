@@ -32,7 +32,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 2.0"
+        self.name = "Via Fence Generator\nversion 2.1"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -467,10 +467,15 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 #user clicked ('Delete Fence Vias')
                 target_tracks = filter(lambda x: ((x.Type() == pcbnew.PCB_VIA_T)and (x.GetTimeStamp() == 55)), self.boardObj.GetTracks())
                 #wx.LogMessage(str(len(target_tracks)))
-                for via in target_tracks:
-                    #if via.GetTimeStamp() == 55:
-                    self.boardObj.RemoveNative(via)
-                    #wx.LogMessage('removing via')
+                target_tracks_cp = list(target_tracks)
+                l = len (target_tracks_cp)
+                for i in range(l): 
+                    #if type(target_tracks_cp[i]) is TRACK and target_tracks_cp[i].IsSelected(): #item.GetNetname() == net_name:
+                    self.boardObj.RemoveNative(target_tracks_cp[i])  #removing via
+                #for via in target_tracks:
+                #    #if via.GetTimeStamp() == 55:
+                #    self.boardObj.RemoveNative(via)
+                #    #wx.LogMessage('removing via')
                 #pcbnew.Refresh()
             self.mainDlg.Destroy()  #the Dlg needs to be destroyed to release pcbnew
 
@@ -500,3 +505,4 @@ class ViaFenceAction(pcbnew.ActionPlugin):
 #            plt.ylim(plt.ylim()[::-1])
 #            plt.axes().set_aspect('equal','box')
 #            plt.show()
+ 
