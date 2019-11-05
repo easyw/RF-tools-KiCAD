@@ -85,7 +85,7 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\nversion 1.5"
+        self.name = "Solder Mask Expander for Tracks\nversion 1.6"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -373,9 +373,12 @@ def Delete_Segments(pcb):
         if tsd != 0:
             target_draws = filter(lambda x: (x.GetTimeStamp() == tsd), pcb.GetDrawings())
             #wx.LogMessage(str(len(target_tracks)))
-            for draw in target_draws:
-                #if via.GetTimeStamp() == 55:
-                pcb.RemoveNative(draw)
+            target_draws_cp = list(target_draws)
+            for i in range(l):
+                pcb.RemoveNative(target_draws_cp[i])
+            #for draw in target_draws:
+            #    #if via.GetTimeStamp() == 55:
+            #    pcb.RemoveNative(draw)
                 #wx.LogMessage('removing via')
             #pcbnew.Refresh()
             wxLogDebug(u'\u2714 Mask Segments Deleted',True)

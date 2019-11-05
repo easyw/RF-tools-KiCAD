@@ -95,7 +95,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\nversion 1.7"
+        self.name = "Rounder for Tracks\nversion 1.8"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -527,8 +527,11 @@ def Delete_Segments(pcb, track=None):
                 #pcb.RemoveNative(track)
                 nseg+=1
         if nseg > 0:
-            for track in tracksToDel:
-                pcb.RemoveNative(track)
+            tracksToDel_cp = list(tracksToDel)
+            l = len (tracksToDel_cp)
+            #for track in tracksToDel:
+            for i in range(l):
+                pcb.RemoveNative(tracksToDel_cp[i])
             wxLogDebug(u'\u2714 Round Segments on Track Net Deleted',True)
     else:
         Netname = tracks[0].GetNetname()
@@ -548,8 +551,12 @@ def Delete_Segments(pcb, track=None):
                 else:
                     tracksToKeep.append(track)
         if nseg > 0:
-            for track in tracksToDel:
-                pcb.RemoveNative(track)
+            tracksToDel_cp = list(tracksToDel)
+            l = len (tracksToDel_cp)
+            for i in range(l):
+                pcb.RemoveNative(tracksToDel_cp[i])
+            #for track in tracksToDel:
+            #    pcb.RemoveNative(track)
             wxLogDebug(u'\u2714 Round Segments on Selected Track deleted',True)
         else:
             wxLogDebug(u'\u2718 you must select One track only',not debug)
