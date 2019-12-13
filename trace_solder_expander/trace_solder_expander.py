@@ -85,7 +85,7 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\nversion 1.6"
+        self.name = "Solder Mask Expander for Tracks\nversion 1.7"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -329,7 +329,7 @@ def solderExpander(pcb,tracks,clearance):
             start = item.GetStart()
             end = item.GetEnd()
             width = item.GetWidth()
-            layer = item.GetLayer()
+            layerId = item.GetLayer()
             layer = item.GetLayerSet()
             layerN = item.GetLayerName()
             layer = pcb.GetLayerID(layerN)
@@ -338,9 +338,10 @@ def solderExpander(pcb,tracks,clearance):
             for c in track_net_name:
                 ts = ts + ord(c)
             #wx.LogMessage("LayerName"+str(layer))
-            if layer == 'F_Cu':
+
+            if layerId == pcbnew.F_Cu:
                 mask_layer = pcbnew.F_Mask
-            elif layer == 'B_Cu':
+            elif layerId == pcbnew.B_Cu: #'B_Cu':
                 mask_layer = pcbnew.B_Mask
             else: #we shouldn't arrive here
                 mask_layer = pcbnew.F_Mask
