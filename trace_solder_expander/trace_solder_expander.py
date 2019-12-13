@@ -330,17 +330,17 @@ def solderExpander(pcb,tracks,clearance):
             end = item.GetEnd()
             width = item.GetWidth()
             layer = item.GetLayer()
-            layer = item.GetLayerSet()
+            layerS = item.GetLayerSet()
             layerN = item.GetLayerName()
-            layer = pcb.GetLayerID(layerN)
+            layerID = pcb.GetLayerID(layerN)
             track_net_name = item.GetNetname()
             ts = 0
             for c in track_net_name:
                 ts = ts + ord(c)
             #wx.LogMessage("LayerName"+str(layer))
-            if layer == 'F_Cu':
+            if layerN == 'F.Cu':
                 mask_layer = pcbnew.F_Mask
-            elif layer == 'B_Cu':
+            elif layerN == 'B.Cu':
                 mask_layer = pcbnew.B_Mask
             else: #we shouldn't arrive here
                 mask_layer = pcbnew.F_Mask
