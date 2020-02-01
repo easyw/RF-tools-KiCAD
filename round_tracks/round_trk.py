@@ -9,7 +9,7 @@
 
 # GNU GENERAL PUBLIC LICENSE
 #                        Version 3, 29 June 2007
-# 
+#
 #  Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
 #  Everyone is permitted to copy and distribute verbatim copies
 #  of this license document, but changing it is not allowed.
@@ -42,6 +42,7 @@ import wx
 import pcbnew
 import math
 import cmath
+from itertools import groupby
 
 #from .RoundTrackDlg import RoundTrackDlg
 from . import RoundTrackDlg
@@ -100,6 +101,8 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
         self.show_toolbar_button = True
+        self.defaultDistanceMM = 5
+        self.defaultSegments = 16
 
     def Warn(self, message, caption='Warning!'):
         dlg = wx.MessageDialog(
@@ -135,7 +138,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         #self.pcb = GetBoard()
         # net_name = "GND"
         pcb = pcbnew.GetBoard()
-        
+
         #from https://github.com/MitjaNemec/Kicad_action_plugins
         #hack wxFormBuilder py2/py3
         _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
@@ -144,8 +147,11 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         #aParameters = RoundTrack_DlgEx(_pcbnew_frame)
         aParameters.Show()
         #end hack
-        aParameters.m_distanceMM.SetValue("5")
-        aParameters.m_segments.SetValue("16")
+        # TODO show permitted rounding distance in dialog box
+        # selectedTracksLengths = [t.GetLength() for t in pcb.GetTracks() if t.IsSelected()]
+        # self.defaultDistanceMM = ToUnits(min(selectedTracksLengths) / 2)
+        aParameters.m_distanceMM.SetValue(str(self.defaultDistanceMM))
+        aParameters.m_segments.SetValue(str(self.defaultSegments))
         aParameters.m_bitmap1.SetBitmap(wx.Bitmap( os.path.join(os.path.dirname(os.path.realpath(__file__)), "round_track_help.png") ) )
         modal_result = aParameters.ShowModal()
         segments = self.CheckSegmentsInput(
@@ -153,6 +159,8 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         distI = FromMM(self.CheckDistanceInput(aParameters.m_distanceMM.GetValue(), "distance from intersection"))
         if segments is not None and distI is not None:
             if modal_result == wx.ID_OK:
+                self.defaultDistanceMM = ToUnits(distI)
+                self.defaultSegments = segments
                 Round_Selection(pcb, distI, segments)
             elif modal_result == wx.ID_DELETE:
                 Delete_Segments(pcb)
@@ -165,7 +173,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         else:
             None  # Invalid input
         aParameters.Destroy()
-        
+
         #Round_Selection(pcb)
 #
 
@@ -174,7 +182,7 @@ def wxLogDebug(msg,show):
     """printing messages only if show is omitted or True"""
     if show:
         wx.LogMessage(msg)
-# 
+#
 def distance (p1,p2):
     return math.hypot(p1.y-p2.y,p1.x-p2.x)
 #
@@ -372,7 +380,7 @@ def getCircleCenterRadius(sp,ep,ip):
         Cy = FromMM(100)
     # import round_trk; reload(round_trk)
     # import round_trk; import importlib; importlib.reload(round_trk)
-    
+
     radius = math.hypot(Cx-sp.x,Cy-sp.y)
     return wxPoint(Cx,Cy), radius
 #
@@ -417,101 +425,98 @@ def getSelTracksLength(pcb):
 
 ##-----------------------------------------------------------------------------------------------------
 def Round_Selection(pcb,distI,segments):
-    tracks = []
-    #print ("TRACKS WHICH MATCH CRITERIA:")
-    for item in pcb.GetTracks():
-        if type(item) is TRACK and item.IsSelected(): #item.GetNetname() == net_name:
-            tracks.append(item)
-    wxLogDebug(str(len(tracks)),debug)
-        
-    if len (tracks) == 2:            
-        #add all the possible intersections to a unique set, for iterating over later
-        intersections = set();	
-        for t1 in range(len(tracks)):
-            for t2 in range(t1+1, len(tracks)):
-                #check if these two tracks share an endpoint
-                # reduce it to a 2-part tuple so there are not multiple objects of the same point in the set
-                if(tracks[t1].IsPointOnEnds(tracks[t2].GetStart())): 
-                    intersections.add((tracks[t2].GetStart().x, tracks[t2].GetStart().y))
-                if(tracks[t1].IsPointOnEnds(tracks[t2].GetEnd())):
-                    intersections.add((tracks[t2].GetEnd().x, tracks[t2].GetEnd().y))
-        if len(intersections)==1:
-            for ip in intersections:
-                (x,y) = ip
-                wxLogDebug("intersections: "+str(ToUnits(x))+":"+str(ToUnits(y)),debug)
-                #wx.LogMessage(str(tracks[0].GetStart()))
-                intersection = wxPoint(x,y)
-                if tracks[0].GetStart() == pcbnew.wxPoint(x,y):
-                    first_trk_extNode = tracks[0].GetEnd()
-                    #wx.LogMessage("tracks[0] external node="+str(ToUnits(tracks[0].GetEnd().x))+";"+str(ToUnits(tracks[0].GetEnd().y)))
-                else:
-                    first_trk_extNode = tracks[0].GetStart()
-                    #wx.LogMessage("tracks[0] external node="+str(ToUnits(tracks[0].GetStart().x))+";"+str(ToUnits(tracks[0].GetStart().y)))
-                if tracks[1].GetStart() == pcbnew.wxPoint(x,y):
-                    last_trk_extNode = tracks[1].GetEnd()
-                    #wx.LogMessage("tracks[1] external node="+str(ToUnits(tracks[1].GetEnd().x))+";"+str(ToUnits(tracks[1].GetEnd().y)))
-                else:
-                    last_trk_extNode = tracks[1].GetStart()
-                    #wx.LogMessage("tracks[1] external node="+str(ToUnits(tracks[1].GetStart().x))+";"+str(ToUnits(tracks[1].GetStart().y)))
-                angle1 = math.degrees((getTrackAngle(tracks[0],intersection)))
-                angle2 = math.degrees((getTrackAngle(tracks[1],intersection)))
-                end_coord1 = (distI) * cmath.exp(math.radians(angle1)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
-                end_coord2 = (distI) * cmath.exp(math.radians(angle2)*1j)
-                startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
-                endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
-                layer = tracks[0].GetLayer()
-                width = ToMM(tracks[0].GetWidth())
-                Nname = tracks[0].GetNet() #.GetNetname()
-                wxLogDebug("offset1 = "+str(ToUnits(startP)),debug) #+":"+str(ToUnits(endP)),debug)
-                wxLogDebug("offset2 = "+str(ToUnits(endP)),debug) #end_coord2.real+x))+":"+str(ToUnits(end_coord2.imag+y)))
-                center,radius = getCircleCenterRadius( startP,endP,intersection )
-                #rad = math.hypot(center.x-startP.x,center.y-startP.y)
-                wxLogDebug('radius'+str(ToMM(radius)),debug)
-                wxLogDebug('center'+str(ToMM(center)),debug)
-                # import round_trk; import importlib; importlib.reload(round_trk)
-                lenT1 = GetTrackLength(tracks[0])
-                dist1 = math.hypot(startP.y-intersection.y,startP.x-intersection.x)
-                lenT2 = GetTrackLength(tracks[1])
-                dist2 = math.hypot(endP.y-intersection.y,endP.x-intersection.x)
-                wxLogDebug('Len T1 {0:.3f} mm, dist1 {1:.3f} mm, LenT2 {2:.3f} mm, dist2 {3:.3f} mm'.format(ToMM(lenT1),ToMM(dist1),ToMM(lenT2),ToMM(dist2)),debug)
-                if show_points:
-                    create_Draw(pcb,startP,startP,F_Mask,0.2)
-                    create_Draw(pcb,intersection,intersection,Eco1_User,1.5)
-                    create_Draw(pcb,endP,endP,B_Mask,0.2)
-                    create_Draw(pcb,center,center,F_SilkS,2.)
-                    create_round_points(pcb,startP,angle1,endP,angle2,center,radius,segments)
-                    pcbnew.Refresh()
-                    selectListTracks(pcb,tracks)
-                if (lenT1 < dist1) or (lenT2 < dist2):
-                    wxLogDebug('Segments too short compared to selected distance {0:.3f} mm'.format(ToMM(distI)),True)
-                else:
-                    #create_Track(pcb,first_trk_extNode,startP,layer,width,Nname) #B_Cu,0.2)
-                    deleteListTracks(pcb,tracks)
-                    create_Track(pcb,startP,first_trk_extNode,layer,width,Nname) #B_Cu,0.2)
-                    #create_Draw(pcb,startP,startP,F_Mask,1.5)
-                    newEP = create_round_segments(pcb,startP,angle1,endP,angle2,center,radius,layer,width,Nname,segments) #B_Cu,0.2)
-                    #wxLogDebug(str(newEP)+':'+str(endP),True)
-                    #create_Draw(pcb,endP,endP,B_Mask,1.9)
-                    create_Track(pcb,endP,last_trk_extNode,layer,width,Nname) # B_Cu,0.2)
-                    #create_Track(pcb,last_trk_extNode,endP,layer,width,Nname) # B_Cu,0.2)
-                    #deleteSelectedTracks(pcb)
-                    #selectListTracks(pcb,tracks)
-                    w3 = 3*float(width)
-                    rad = float(ToMM(radius))
-                    wxLogDebug(str(w3),debug)
-                    msg = u'Corner Radius: {0:.3f} mm'.format(rad)
-                    msg+= u'\nAngle between tracks: {0:.1f} deg'.format(angle1-angle2)
-                    if rad < w3:
-                        msg += u'\n\u2718 ALERT: Radius < 3 *(track width) !!!\n[{0:.3f}mm < 3*{1:.3f}mm]'.format(rad,width)
-                    #else:
-                    #    #msg = u'\n\u2714 Radius > 3 * (track width)'
-                    #    msg = u'\u2714 Corner Radius: {0:.3f} mm'.format(rad)
-                    wxLogDebug(msg,True)
-                    pcbnew.Refresh()
-    # import round_trk; reload(round_trk)
-    # import round_trk; import importlib; importlib.reload(round_trk)
-    else:
-        wxLogDebug("you must select two tracks (only)",not debug)
+    selectedTracks = [t for t in pcb.GetTracks() if t.IsSelected()]
+
+    for netname, tracksgroup in groupby(selectedTracks, lambda t: t.GetNetname()):
+        tracks = [t for t in tracksgroup]
+        if len (tracks) == 2:
+            #add all the possible intersections to a unique set, for iterating over later
+            intersections = set();
+            for t1 in range(len(tracks)):
+                for t2 in range(t1+1, len(tracks)):
+                    #check if these two tracks share an endpoint
+                    # reduce it to a 2-part tuple so there are not multiple objects of the same point in the set
+                    if(tracks[t1].IsPointOnEnds(tracks[t2].GetStart())):
+                        intersections.add((tracks[t2].GetStart().x, tracks[t2].GetStart().y))
+                    if(tracks[t1].IsPointOnEnds(tracks[t2].GetEnd())):
+                        intersections.add((tracks[t2].GetEnd().x, tracks[t2].GetEnd().y))
+            if len(intersections)==1:
+                for ip in intersections:
+                    (x,y) = ip
+                    wxLogDebug("intersections: "+str(ToUnits(x))+":"+str(ToUnits(y)),debug)
+                    #wx.LogMessage(str(tracks[0].GetStart()))
+                    intersection = wxPoint(x,y)
+                    if tracks[0].GetStart() == pcbnew.wxPoint(x,y):
+                        first_trk_extNode = tracks[0].GetEnd()
+                        #wx.LogMessage("tracks[0] external node="+str(ToUnits(tracks[0].GetEnd().x))+";"+str(ToUnits(tracks[0].GetEnd().y)))
+                    else:
+                        first_trk_extNode = tracks[0].GetStart()
+                        #wx.LogMessage("tracks[0] external node="+str(ToUnits(tracks[0].GetStart().x))+";"+str(ToUnits(tracks[0].GetStart().y)))
+                    if tracks[1].GetStart() == pcbnew.wxPoint(x,y):
+                        last_trk_extNode = tracks[1].GetEnd()
+                        #wx.LogMessage("tracks[1] external node="+str(ToUnits(tracks[1].GetEnd().x))+";"+str(ToUnits(tracks[1].GetEnd().y)))
+                    else:
+                        last_trk_extNode = tracks[1].GetStart()
+                        #wx.LogMessage("tracks[1] external node="+str(ToUnits(tracks[1].GetStart().x))+";"+str(ToUnits(tracks[1].GetStart().y)))
+                    angle1 = math.degrees((getTrackAngle(tracks[0],intersection)))
+                    angle2 = math.degrees((getTrackAngle(tracks[1],intersection)))
+                    end_coord1 = (distI) * cmath.exp(math.radians(angle1)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
+                    end_coord2 = (distI) * cmath.exp(math.radians(angle2)*1j)
+                    startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
+                    endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
+                    layer = tracks[0].GetLayer()
+                    width = ToMM(tracks[0].GetWidth())
+                    Nname = tracks[0].GetNet() #.GetNetname()
+                    wxLogDebug("offset1 = "+str(ToUnits(startP)),debug) #+":"+str(ToUnits(endP)),debug)
+                    wxLogDebug("offset2 = "+str(ToUnits(endP)),debug) #end_coord2.real+x))+":"+str(ToUnits(end_coord2.imag+y)))
+                    center,radius = getCircleCenterRadius( startP,endP,intersection )
+                    #rad = math.hypot(center.x-startP.x,center.y-startP.y)
+                    wxLogDebug('radius'+str(ToMM(radius)),debug)
+                    wxLogDebug('center'+str(ToMM(center)),debug)
+                    # import round_trk; import importlib; importlib.reload(round_trk)
+                    lenT1 = GetTrackLength(tracks[0])
+                    dist1 = math.hypot(startP.y-intersection.y,startP.x-intersection.x)
+                    lenT2 = GetTrackLength(tracks[1])
+                    dist2 = math.hypot(endP.y-intersection.y,endP.x-intersection.x)
+                    wxLogDebug('Len T1 {0:.3f} mm, dist1 {1:.3f} mm, LenT2 {2:.3f} mm, dist2 {3:.3f} mm'.format(ToMM(lenT1),ToMM(dist1),ToMM(lenT2),ToMM(dist2)),debug)
+                    if show_points:
+                        create_Draw(pcb,startP,startP,F_Mask,0.2)
+                        create_Draw(pcb,intersection,intersection,Eco1_User,1.5)
+                        create_Draw(pcb,endP,endP,B_Mask,0.2)
+                        create_Draw(pcb,center,center,F_SilkS,2.)
+                        create_round_points(pcb,startP,angle1,endP,angle2,center,radius,segments)
+                        # pcbnew.Refresh()
+                        selectListTracks(pcb,tracks)
+                    if (lenT1 < dist1) or (lenT2 < dist2):
+                        wxLogDebug('Segments too short compared to selected distance {0:.3f} mm'.format(ToMM(distI)),True)
+                    else:
+                        #create_Track(pcb,first_trk_extNode,startP,layer,width,Nname) #B_Cu,0.2)
+                        deleteListTracks(pcb,tracks)
+                        create_Track(pcb,startP,first_trk_extNode,layer,width,Nname) #B_Cu,0.2)
+                        #create_Draw(pcb,startP,startP,F_Mask,1.5)
+                        newEP = create_round_segments(pcb,startP,angle1,endP,angle2,center,radius,layer,width,Nname,segments) #B_Cu,0.2)
+                        #wxLogDebug(str(newEP)+':'+str(endP),True)
+                        #create_Draw(pcb,endP,endP,B_Mask,1.9)
+                        create_Track(pcb,endP,last_trk_extNode,layer,width,Nname) # B_Cu,0.2)
+                        #create_Track(pcb,last_trk_extNode,endP,layer,width,Nname) # B_Cu,0.2)
+                        #deleteSelectedTracks(pcb)
+                        #selectListTracks(pcb,tracks)
+                        w3 = 3*float(width)
+                        rad = float(ToMM(radius))
+                        wxLogDebug(str(w3),debug)
+                        msg = u'Corner Radius: {0:.3f} mm'.format(rad)
+                        msg+= u'\nAngle between tracks: {0:.1f} deg'.format(angle1-angle2)
+                        if rad < w3:
+                            msg += u'\n\u2718 ALERT: Radius < 3 *(track width) !!!\n[{0:.3f}mm < 3*{1:.3f}mm]'.format(rad,width)
+                        #else:
+                        #    #msg = u'\n\u2714 Radius > 3 * (track width)'
+                        #    msg = u'\u2714 Corner Radius: {0:.3f} mm'.format(rad)
+                        wxLogDebug(msg,debug)
+                        # pcbnew.Refresh()
+        # import round_trk; reload(round_trk)
+        # import round_trk; import importlib; importlib.reload(round_trk)
+        else:
+            wxLogDebug("you must select two tracks (only)",not debug)
 #
 def Delete_Segments(pcb, track=None):
     tracks = []
@@ -523,7 +528,7 @@ def Delete_Segments(pcb, track=None):
         wxLogDebug('tracks selected: '+str(len(tracks)),debug2)
     else:
         tracks.append(track)
-    if len (tracks) == 1:            
+    if len (tracks) == 1:
         Netname = tracks[0].GetNetname()
         tsc = 0
         for c in Netname:
@@ -580,7 +585,7 @@ def Connect_Segments(pcb):
         if type(item) is TRACK and item.IsSelected():
             tracks.append(item)
     wxLogDebug(str(len(tracks)),debug)
-        
+
     if len (tracks) >= 2:
         pi_exists = True
         if len (tracks) > 2:
