@@ -17,7 +17,7 @@ import wx.xrc
 class RoundTrackDlg ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Round Track parameters", pos = wx.DefaultPosition, size = wx.Size( 571,801 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Round Track parameters", pos = wx.DefaultPosition, size = wx.Size( 432,532 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -109,11 +109,11 @@ class RoundTrackDlg ( wx.Dialog ):
 
 		bSizer8 = wx.BoxSizer( wx.VERTICAL )
 
-		self.m_checkBoxDelete = wx.CheckBox( sbSizer1.GetStaticBox(), wx.ID_ANY, u"clean path", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer8.Add( self.m_checkBoxDelete, 0, wx.ALL, 5 )
-
 		self.m_buttonReconnect = wx.Button( sbSizer1.GetStaticBox(), wx.ID_OK, u"Connect", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer8.Add( self.m_buttonReconnect, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.m_checkBoxDelete = wx.CheckBox( sbSizer1.GetStaticBox(), wx.ID_ANY, u"clean path", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer8.Add( self.m_checkBoxDelete, 0, wx.ALL, 5 )
 
 
 		bSizer111.Add( bSizer8, 1, wx.EXPAND, 5 )
