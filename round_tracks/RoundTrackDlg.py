@@ -17,7 +17,7 @@ import wx.xrc
 class RoundTrackDlg ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Round Track parameters", pos = wx.DefaultPosition, size = wx.Size( 390,520 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Round Track parameters", pos = wx.DefaultPosition, size = wx.Size( 571,801 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -76,11 +76,6 @@ class RoundTrackDlg ( wx.Dialog ):
 
 		bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
-		self.m_staticText101 = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText101.Wrap( -1 )
-
-		bSizer1.Add( self.m_staticText101, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
-
 		self.m_buttonRound = wx.Button( self, wx.ID_OK, u"Round", wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		self.m_buttonRound.SetDefault()
@@ -104,18 +99,29 @@ class RoundTrackDlg ( wx.Dialog ):
 		self.m_buttonDelete = wx.Button( sbSizer1.GetStaticBox(), wx.ID_OK, u"Delete", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer611.Add( self.m_buttonDelete, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
+		self.m_staticline2 = wx.StaticLine( sbSizer1.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer611.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
+
 
 		sbSizer1.Add( bSizer611, 1, wx.EXPAND, 5 )
 
 		bSizer111 = wx.BoxSizer( wx.HORIZONTAL )
 
+		bSizer8 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_checkBoxDelete = wx.CheckBox( sbSizer1.GetStaticBox(), wx.ID_ANY, u"clean path", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer8.Add( self.m_checkBoxDelete, 0, wx.ALL, 5 )
+
+		self.m_buttonReconnect = wx.Button( sbSizer1.GetStaticBox(), wx.ID_OK, u"Connect", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer8.Add( self.m_buttonReconnect, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		bSizer111.Add( bSizer8, 1, wx.EXPAND, 5 )
+
 		self.m_staticText10111 = wx.StaticText( sbSizer1.GetStaticBox(), wx.ID_ANY, u"Select tracks including one round corner to be straighten", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText10111.Wrap( -1 )
 
 		bSizer111.Add( self.m_staticText10111, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-		self.m_buttonReconnect = wx.Button( sbSizer1.GetStaticBox(), wx.ID_OK, u"Connect", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer111.Add( self.m_buttonReconnect, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
 		sbSizer1.Add( bSizer111, 1, wx.EXPAND, 5 )

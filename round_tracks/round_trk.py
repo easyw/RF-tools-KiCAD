@@ -55,6 +55,9 @@ debug2 = False
 show_points = False
 show_points2 = False
 
+global delete_before_connect
+delete_before_connect = False
+
 # N_SEGMENTS = 32 #4#32
 # distI = FromMM(10)
 
@@ -79,6 +82,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
         return self.EndModal(wx.ID_REVERT)
 
     def __init__(self,  parent):
+        global delete_before_connect
         import wx
         RoundTrackDlg.RoundTrackDlg.__init__(self, parent)
         #self.GetSizer().Fit(self)
@@ -91,11 +95,14 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
         else:
             self.m_buttonReconnect.SetToolTip( u"Select two converging Tracks to re-connect them\nor Select tracks including one round corner to be straighten" )
             self.m_buttonRound.SetToolTip( u"Select two connected Tracks to round the corner\nThen choose distance from intersection and the number of segments" )
+        if self.m_checkBoxDelete.IsChecked():
+            delete_before_connect = True
+            
 #
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\nversion 1.9"
+        self.name = "Rounder for Tracks\nversion 2.0"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -132,6 +139,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         return val
 
     def Run(self):
+        global delete_before_connect
         #self.pcb = GetBoard()
         # net_name = "GND"
         pcb = pcbnew.GetBoard()
@@ -151,6 +159,10 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         segments = self.CheckSegmentsInput(
             aParameters.m_segments.GetValue(), "number of segments")
         distI = FromMM(self.CheckDistanceInput(aParameters.m_distanceMM.GetValue(), "distance from intersection"))
+        if aParameters.m_checkBoxDelete.IsChecked():
+            delete_before_connect = True
+        else:
+            delete_before_connect = False
         if segments is not None and distI is not None:
             if modal_result == wx.ID_OK:
                 Round_Selection(pcb, distI, segments)
@@ -417,6 +429,7 @@ def getSelTracksLength(pcb):
 
 ##-----------------------------------------------------------------------------------------------------
 def Round_Selection(pcb,distI,segments):
+    global delete_before_connect
     tracks = []
     #print ("TRACKS WHICH MATCH CRITERIA:")
     for item in pcb.GetTracks():
@@ -486,6 +499,7 @@ def Round_Selection(pcb,distI,segments):
                     wxLogDebug('Segments too short compared to selected distance {0:.3f} mm'.format(ToMM(distI)),True)
                 else:
                     #create_Track(pcb,first_trk_extNode,startP,layer,width,Nname) #B_Cu,0.2)
+                    #if delete_before_connect:
                     deleteListTracks(pcb,tracks)
                     create_Track(pcb,startP,first_trk_extNode,layer,width,Nname) #B_Cu,0.2)
                     #create_Draw(pcb,startP,startP,F_Mask,1.5)
@@ -514,6 +528,7 @@ def Round_Selection(pcb,distI,segments):
         wxLogDebug("you must select two tracks (only)",not debug)
 #
 def Delete_Segments(pcb, track=None):
+    global delete_before_connect
     tracks = []
     tracksToKeep = []
     if track is None:
@@ -523,7 +538,7 @@ def Delete_Segments(pcb, track=None):
         wxLogDebug('tracks selected: '+str(len(tracks)),debug2)
     else:
         tracks.append(track)
-    if len (tracks) == 1:            
+    if len (tracks) == 1 and delete_before_connect:            
         Netname = tracks[0].GetNetname()
         tsc = 0
         for c in Netname:
@@ -569,7 +584,7 @@ def Delete_Segments(pcb, track=None):
             #for track in tracksToDel:
             #    pcb.RemoveNative(track)
             wxLogDebug(u'\u2714 Round Segments on Selected Track deleted',True)
-        else:
+        elif delete_before_connect:
             wxLogDebug(u'\u2718 you must select One track only',not debug)
         return tracksToKeep
 #
