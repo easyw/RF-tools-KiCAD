@@ -1,5 +1,5 @@
 # RF-Tools for KiCAD
-**compatibility: KiCAD 5.1.4**
+**compatibility: KiCAD 5.1.5**
 
 **<h2>Rounder tools for tracks</h2>**
 
@@ -52,7 +52,7 @@ Simply launch the fotprint wizard and select the uwave tool:
 <h2>Siblings/suggested plugins:</h2>
 <br>
 
-[Via Stitching Generator](https://github.com/easyw/kicad-action-scripts)
+[Via Stitching Generator](https://github.com/jsreynaud/kicad-action-scripts)
 
 <br>
 
