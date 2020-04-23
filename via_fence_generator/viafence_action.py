@@ -372,6 +372,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         
             self.mainDlg = MainDialog(None)
             self.selfToMainDialog()
+            if hasattr(self.boardObj, 'm_Uuid'):
+                self.mainDlg.m_buttonDelete.Disable()
+                self.mainDlg.chkRemoveViasWithClearanceViolation.Hide()
             reply = self.mainDlg.ShowModal()
             if (reply == wx.ID_OK):
                 # User pressed OK.
