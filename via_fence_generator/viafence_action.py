@@ -106,7 +106,10 @@ class ViaFenceAction(pcbnew.ActionPlugin):
             newVia.SetPosition(pcbnew.wxPoint(viaPoint[0], viaPoint[1]))
             newVia.SetWidth(viaSize)
             newVia.SetDrill(viaDrill)
-            newVia.SetViaType(pcbnew.VIA_THROUGH)
+            if hasattr(pcbnew, 'VIA_THROUGH'):
+                newVia.SetViaType(pcbnew.VIA_THROUGH)
+            else:
+                newVia.SetViaType(pcbnew.VIATYPE_THROUGH)
             newVia.SetNetCode(netCode)
             newVias += [newVia]
 
