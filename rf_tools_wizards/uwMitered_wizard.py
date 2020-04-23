@@ -210,7 +210,10 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         module.Reference().SetPos0(wxPoint(0, textposy))
         module.Reference().SetPosition(module.Reference().GetPos0())
         module.Reference().SetTextSize( size_text )
-        module.Reference().SetThickness( FromMM( 0.125) )
+        if hasattr(module.Reference(), 'SetThickness'):
+            module.Reference().SetThickness(FromMM(0.125))
+        else:
+            module.Reference().SetTextThickness(FromMM(0.125))
         module.Reference().SetVisible(True)
 
         textposy = textposy + FromMM(1)
