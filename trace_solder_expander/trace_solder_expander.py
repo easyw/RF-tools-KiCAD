@@ -118,10 +118,12 @@ class Solder_Expander(pcbnew.ActionPlugin):
         aParameters = SolderExpander_Dlg(_pcbnew_frame)
         aParameters.m_clearanceMM.SetValue("0.2")
         aParameters.m_bitmap1.SetBitmap(wx.Bitmap( os.path.join(os.path.dirname(os.path.realpath(__file__)), "soldermask_clearance_help.png") ) )
+        pcb = pcbnew.GetBoard()
+        if hasattr(pcb, 'm_Uuid'):
+            aParameters.m_buttonDelete.Disable()
         modal_result = aParameters.ShowModal()
         clearance = FromMM(self.CheckInput(aParameters.m_clearanceMM.GetValue(), "extra clearance from track width"))
         if clearance is not None:
-            pcb = pcbnew.GetBoard()
             if modal_result == wx.ID_OK:
                 #pcb = pcbnew.GetBoard()
                 tracks=getSelTracks(pcb)
