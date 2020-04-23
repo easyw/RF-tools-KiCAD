@@ -256,7 +256,10 @@ def create_Text(pcb, txt, p, w, lyr):
     mytxt.SetPosition(p)
     mytxt.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_CENTER)
     mytxt.SetTextSize(pcbnew.wxSize(w,w))
-    mytxt.SetThickness(int(w/4))
+    if hasattr(mytext, 'SetThickness'):
+        mytxt.SetThickness(int(w/4))
+    else:
+        mytxt.SetTextThickness(int(w/4))
     pcb.Add(mytxt)
 #
 
