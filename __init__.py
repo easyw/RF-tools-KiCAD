@@ -10,3 +10,5 @@ from . import trace_solder_expander
 from . import tracks_length
 
 from . import via_fence_generator
+
+from . import trace_clearance
