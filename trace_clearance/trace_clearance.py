@@ -192,6 +192,5 @@ def semicircle_points(circle_center, radius, angle_norm, is_start=True):
         pts.append(
             circle_center
             + pcbnew.wxPoint(radius * np.cos(ang), radius * np.sin(ang))
-            # + pcbnew.wxPoint(radius * np.sin(ang), radius * np.cos(ang))
         )
     return pcbnew.wxPoint_Vector(pts)
