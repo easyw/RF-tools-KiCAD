@@ -30,6 +30,9 @@ class TraceClearanceDlg ( wx.Dialog ):
 
 		bSizer5 = wx.BoxSizer( wx.HORIZONTAL )
 
+		self.m_bitmap = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer5.Add( self.m_bitmap, 0, wx.ALL, 5 )
+
 
 		bSizer2.Add( bSizer5, 1, wx.EXPAND, 5 )
 

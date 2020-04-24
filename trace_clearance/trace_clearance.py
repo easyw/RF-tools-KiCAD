@@ -23,6 +23,7 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+import os
 import pcbnew
 import wx
 import numpy as np
@@ -53,8 +54,9 @@ class TraceClearance(pcbnew.ActionPlugin):
             "Generate a copper pour keepout for a selected trace."
         )
         self.show_toolbar_button = True
-        # TODO
-        # self.icon_file_name =
+        self.icon_file_name = os.path.join(
+            os.path.dirname(__file__), "./trace_clearance.png"
+        )
 
     def Run(self):
         """
@@ -66,7 +68,14 @@ class TraceClearance(pcbnew.ActionPlugin):
         ][0]
         wx_params = TraceClearance_Dlg(_pcbnew_frame)
         wx_params.m_clearance.SetValue("0.2")
-        # TODO create an icon
+        wx_params.m_bitmap.SetBitmap(
+            wx.Bitmap(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    "trace_clearance_dialog.png",
+                )
+            )
+        )
         modal_res = wx_params.ShowModal()
         clearance = pcbnew.FromMM(
             self.InputValid(wx_params.m_clearance.GetValue())
