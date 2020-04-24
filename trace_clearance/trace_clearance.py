@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# Copyright 2019 Maurice https://github.com/easyw/
 # Copyright 2020 Matt Huszagh https://github.com/matthuszagh
 
 # GNU GENERAL PUBLIC LICENSE
