@@ -130,6 +130,8 @@ def set_keepouts(pcb, tracks, clearance):
     for track in tracks:
         track_start = track.GetStart()
         track_end = track.GetEnd()
+        if track_start.x == track_end.x and track_start.y == track_end.y:
+            continue
         track_width = track.GetWidth()
         layer = track.GetLayerSet()
 
