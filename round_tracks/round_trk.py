@@ -102,7 +102,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\nversion 2.1"
+        self.name = "Rounder for Tracks\nversion 2.2"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -146,7 +146,10 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         
         #from https://github.com/MitjaNemec/Kicad_action_plugins
         #hack wxFormBuilder py2/py3
-        _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
+        try:
+            _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
+        except:
+            _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if 'pcbnew' in wx._windows.Frame.GetTitle(x).lower()][0]
         #aParameters = RoundTrackDlg(None)
         aParameters = RoundTrack_Dlg(_pcbnew_frame)
         if hasattr (pcb, 'm_Uuid'):
@@ -169,6 +172,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         if segments is not None and distI is not None:
             if modal_result == wx.ID_OK:
                 Round_Selection(pcb, distI, segments)
+                pcbnew.Refresh()
             elif modal_result == wx.ID_DELETE:
                 Delete_Segments(pcb)
                 #wx.LogMessage('Round Segments on Track Net Deleted')
@@ -177,6 +181,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
                 Connect_Segments(pcb)
             else:
                 None  # Cancel
+            #pcbnew.Refresh()
         else:
             None  # Invalid input
         aParameters.Destroy()
