@@ -1,5 +1,5 @@
 # RF-Tools for KiCAD
-**compatibility: KiCAD 5.1.5**
+**compatibility: KiCAD 5.1.x**
 
 **<h2>Rounder tools for tracks</h2>**
 
