@@ -146,10 +146,8 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         
         #from https://github.com/MitjaNemec/Kicad_action_plugins
         #hack wxFormBuilder py2/py3
-        try:
-            _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
-        except:
-            _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if 'pcbnew' in wx._windows.Frame.GetTitle(x).lower()][0]
+        # _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
+        _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetName() == 'PcbFrame'][0]
         #aParameters = RoundTrackDlg(None)
         aParameters = RoundTrack_Dlg(_pcbnew_frame)
         if hasattr (pcb, 'm_Uuid'):

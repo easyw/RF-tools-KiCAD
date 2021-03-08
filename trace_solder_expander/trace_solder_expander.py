@@ -114,7 +114,8 @@ class Solder_Expander(pcbnew.ActionPlugin):
         #pcb = pcbnew.GetBoard()
         # net_name = "GND"
         #aParameters = SolderExpanderDlg(None)
-        _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
+        # _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
+        _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetName() == 'PcbFrame'][0]
         aParameters = SolderExpander_Dlg(_pcbnew_frame)
         aParameters.m_clearanceMM.SetValue("0.2")
         aParameters.m_bitmap1.SetBitmap(wx.Bitmap( os.path.join(os.path.dirname(os.path.realpath(__file__)), "soldermask_clearance_help.png") ) )
