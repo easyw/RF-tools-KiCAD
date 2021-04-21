@@ -30,7 +30,7 @@
 <hr>
 <h2>Footprint Wizards:</h2>
 
-(to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
+(to be copied on [KiCAD plugins dir](https://kicad-source-mirror.readthedocs.io/en/latest/Documentation/development/pcbnew-plugins/#typical-plugin-structure-ppi_pi_struct))
 
 * microwave RF Arc footprint wizard
 * microwave RF Mitered footprint wizard
