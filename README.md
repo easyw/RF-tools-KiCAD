@@ -3,7 +3,7 @@
 
 **<h2>Rounder tools for tracks</h2>**
 
-(to be copied on [KiCAD plugins dir](https://github.com/KiCad/kicad-source-mirror/blob/master/Documentation/development/pcbnew-plugins.md#typical-plugin-structure--ppi_pi_struct))
+(to be copied on [KiCAD plugins dir](https://kicad-source-mirror.readthedocs.io/en/latest/Documentation/development/pcbnew-plugins/#typical-plugin-structure-ppi_pi_struct))
 
 * Rounder for tracks (*Action Plugin*)
 * Solder Mask Expander (*Action Plugin*)
