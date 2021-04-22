@@ -32,7 +32,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 2.1"
+        self.name = "Via Fence Generator\nversion 2.2"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -359,8 +359,8 @@ class ViaFenceAction(pcbnew.ActionPlugin):
             self.viaSize = self.boardDesignSettingsObj.GetCurrentViaSize()
             self.layerId = 0 #TODO: How to get currently selected layer?
             self.viaDrill = self.boardDesignSettingsObj.GetCurrentViaDrill()
-            self.viaPitch = pcbnew.FromMM(1.0)
-            self.viaOffset = pcbnew.FromMM(1.0)
+            self.viaPitch = pcbnew.FromMM(1.3)
+            self.viaOffset = pcbnew.FromMM(1.3)
             self.viaNetId = 0 #TODO: Maybe a better init value here. Try to find "GND" maybe?
             self.isNetFilterChecked = 1 if self.highlightedNetId != -1 else 0
             self.isLayerChecked = 0
