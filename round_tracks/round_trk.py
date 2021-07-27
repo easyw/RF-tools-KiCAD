@@ -102,7 +102,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\nversion 2.2"
+        self.name = "Rounder for Tracks\n version 2.3"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -198,7 +198,7 @@ def distance (p1,p2):
 #
 #gets the angle of a track
 def getTrackAngle(t1,center):
-	#use atan2 so the correct quadrant is returned
+    #use atan2 so the correct quadrant is returned
     if t1.GetStart().x == center.x and t1.GetStart().y == center.y:
         wxLogDebug("Start = Center",debug)
         return math.atan2((t1.GetEnd().y - t1.GetStart().y), (t1.GetEnd().x - t1.GetStart().x))
@@ -208,12 +208,16 @@ def getTrackAngle(t1,center):
 #
 #track length
 def GetTrackLength(t1):
-	return t1.GetLength()
+    return t1.GetLength()
 #
 def create_Track(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None):
     #draw segment to test
     #new_line = pcbnew.DRAWSEGMENT(pcb)
-    new_line = pcbnew.TRACK(pcb)
+    if  hasattr(pcbnew,'TRACK'):
+        new_line = pcbnew.TRACK(pcb)
+    else:
+        new_shape = PCB_SHAPE() 
+        new_line = PCB_TRACK(new_shape)
     new_line.SetStart(p1)
     new_line.SetEnd(p2)
     if w is None:
@@ -238,7 +242,10 @@ def create_Track(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None):
 #
 def create_Draw(pcb,p1,p2,lyr=None,w=None):
     #draw segment to test
-    new_line = pcbnew.DRAWSEGMENT(pcb)
+    if hasattr(pcbnew,'DRAWSEGMENT'):
+        new_line = pcbnew.DRAWSEGMENT(pcb)
+    else:
+        new_line = PCB_SHAPE()
     #new_line = pcbnew.TRACK(pcb)
     new_line.SetStart(p1)
     new_line.SetEnd(p2)
@@ -253,7 +260,10 @@ def create_Draw(pcb,p1,p2,lyr=None,w=None):
     return new_line
 #
 def create_Text(pcb, txt, p, w, lyr):
-    mytxt = pcbnew.TEXTE_PCB(pcb)
+    if hasattr(pcbnew,'TEXTE_PCB'):
+        mytxt = pcbnew.TEXTE_PCB(pcb)
+    else:
+        mytxt = pcbnew.PCB_TEXT(EDA_TEXT) #Cast_to_PCB_TEXT(EDA_TEXT)
     mytxt.SetText(txt)
     mytxt.SetLayer(lyr)
     mytxt.SetPosition(p)
@@ -402,8 +412,12 @@ def deleteSelectedTracks(pcb):
     tracks = pcb.GetTracks()
     tracks_cp = list(tracks)
     l = len (tracks_cp)
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for i in range(l):
-        if type(tracks_cp[i]) is TRACK and tracks_cp[i].IsSelected(): #item.GetNetname() == net_name:
+        if type(tracks_cp[i]) is track_item and tracks_cp[i].IsSelected(): #item.GetNetname() == net_name:
             pcb.RemoveNative(tracks_cp[i])
     #for item in pcb.GetTracks():
     #    if type(item) is TRACK and item.IsSelected(): #item.GetNetname() == net_name:
@@ -413,8 +427,12 @@ def deleteSelectedTracks(pcb):
 def deleteListTracks(pcb,tracks):
     tracksToDel_cp = list(tracks)
     l = len (tracksToDel_cp)
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for i in range(l):
-        if type(tracksToDel_cp[i]) is TRACK: #item.GetNetname() == net_name:
+        if type(tracksToDel_cp[i]) is track_item: #item.GetNetname() == net_name:
             pcb.RemoveNative(tracksToDel_cp[i])
     #for item in tracks:
     #    if type(item) is TRACK: #item.GetNetname() == net_name:
@@ -422,15 +440,23 @@ def deleteListTracks(pcb,tracks):
     #        #pcb.Delete(item)
 #
 def selectListTracks(pcb,tracks):
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for item in tracks:
-        if type(item) is TRACK:
+        if type(item) is track_item:
             item.SetSelected()
 #
 
 def getSelTracksLength(pcb):
     ln = 0.
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for item in pcb.GetTracks():
-        if type(item) is pcbnew.TRACK and item.IsSelected():
+        if type(item) is track_item and item.IsSelected():
             ln+=(item.GetLength())
     return(ln)
     #print(pcbnew.ToMM(ln))
@@ -442,8 +468,12 @@ def Round_Selection(pcb,distI,segments):
     global delete_before_connect
     tracks = []
     #print ("TRACKS WHICH MATCH CRITERIA:")
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for item in pcb.GetTracks():
-        if type(item) is TRACK and item.IsSelected(): #item.GetNetname() == net_name:
+        if type(item) is track_item and item.IsSelected(): #item.GetNetname() == net_name:
             tracks.append(item)
     wxLogDebug(str(len(tracks)),debug)
         
@@ -542,8 +572,12 @@ def Delete_Segments(pcb, track=None):
     tracks = []
     tracksToKeep = []
     if track is None:
+        if  hasattr(pcbnew,'TRACK'):
+            track_item = pcbnew.TRACK
+        else:
+            track_item = pcbnew.PCB_TRACK
         for item in pcb.GetTracks():
-            if type(item) is TRACK and item.IsSelected():
+            if type(item) is track_item and item.IsSelected():
                 tracks.append(item)
         wxLogDebug('tracks selected: '+str(len(tracks)),debug2)
     else:
@@ -579,8 +613,12 @@ def Delete_Segments(pcb, track=None):
             tsc = tsc + ord(c)
         nseg = 0
         tracksToDel = []
+        if  hasattr(pcbnew,'TRACK'):
+            track_item = pcbnew.TRACK
+        else:
+            track_item = pcbnew.PCB_TRACK
         for track in pcb.GetTracks():
-            if type(track) is TRACK and track.IsSelected():
+            if type(track) is track_item and track.IsSelected():
                 if hasattr(track,'GetTimeStamp'):
                     tsd = track.GetTimeStamp()
                 else:
@@ -607,8 +645,12 @@ def Delete_Segments(pcb, track=None):
 def Connect_Segments(pcb):
     tracks = []
     tracksToKeep = []
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for item in pcb.GetTracks():
-        if type(item) is TRACK and item.IsSelected():
+        if type(item) is track_item and item.IsSelected():
             tracks.append(item)
     wxLogDebug(str(len(tracks)),debug)
         
