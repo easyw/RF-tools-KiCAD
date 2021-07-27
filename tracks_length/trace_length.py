@@ -26,7 +26,12 @@ def wxLogDebug(msg,dbg):
 def getSelTracksLength(pcb):
     ln = 0.
     for item in pcb.GetTracks():
-        if type(item) is pcbnew.TRACK and item.IsSelected():
+        if not hasattr(pcbnew,'TRACK'):
+            item = pcbnew.Cast_to_PCB_TRACK(item)
+            trktp = pcbnew.PCB_TRACK
+        else:
+            trktp = pcbnew.TRACK
+        if type(item) is trktp and item.IsSelected():
             ln+=(item.GetLength())
     return(ln)
     #print(pcbnew.ToMM(ln))
@@ -34,7 +39,12 @@ def getSelTracksLength(pcb):
 def getSelTracks(pcb):
     tracks=[]
     for item in pcb.GetTracks():
-        if type(item) is pcbnew.TRACK and item.IsSelected():
+        if not hasattr(pcbnew,'TRACK'):
+            item = pcbnew.Cast_to_PCB_TRACK(item)
+            trktp = pcbnew.PCB_TRACK
+        else:
+            trktp = pcbnew.TRACK
+        if type(item) is trktp and item.IsSelected():
             tracks.append(item)
     return tracks
 #
@@ -63,7 +73,12 @@ def getTracksListLength(pcb,tracks):
 #
 def selectListTracks(pcb,tracks):
     for item in tracks:
-        if type(item) is TRACK:
+        if not hasattr(pcbnew,'TRACK'):
+            item = pcbnew.Cast_to_PCB_TRACK(item)
+            trktp = pcbnew.PCB_TRACK
+        else:
+            trktp = pcbnew.TRACK
+        if type(item) is trktp:
             item.SetSelected()
 #
 def getTrackAngleRadians(track):
@@ -74,7 +89,7 @@ def getTrackAngleRadians(track):
 # Python plugin stuff
 class SelectedTracesLenght(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Measure Length for Selected Tracks\nversion 1.2"
+        self.name = "Measure Length for Selected Tracks\n version 1.3"
         self.category = "Modify PCB"
         self.description = "Measure Length for Selected Tracks"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./trace_length.png")
@@ -132,7 +147,12 @@ class SelectedTracesLenght(pcbnew.ActionPlugin):
 
 def selectListTracks(pcb,tracks):
     for item in tracks:
-        if type(item) is TRACK:
+        if not hasattr(pcbnew,'TRACK'):
+            item = pcbnew.Cast_to_PCB_TRACK(item)
+            trktp = pcbnew.PCB_TRACK
+        else:
+            trktp = pcbnew.TRACK
+        if type(item) is trktp:
             item.SetSelected()
             
 def clearListTracks(pcb,tracks,refresh=None):
@@ -287,7 +307,12 @@ def isConn(s1,s2):
 def getSelTracks(pcb):
     tracks=[]
     for item in pcb.GetTracks():
-        if type(item) is pcbnew.TRACK and item.IsSelected():
+        if not hasattr(pcbnew,'TRACK'):
+            item = pcbnew.Cast_to_PCB_TRACK(item)
+            trktp = pcbnew.PCB_TRACK
+        else:
+            trktp = pcbnew.TRACK
+        if type(item) is trktp and item.IsSelected():
             tracks.append(item)
     return tracks
 #

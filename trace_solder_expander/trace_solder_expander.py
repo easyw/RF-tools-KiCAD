@@ -85,7 +85,7 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\nversion 1.7"
+        self.name = "Solder Mask Expander for Tracks\n version 1.8"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -296,8 +296,12 @@ def isConn(s1,s2):
 
 def getSelTracks(pcb):
     tracks=[]
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for item in pcb.GetTracks():
-        if type(item) is pcbnew.TRACK and item.IsSelected():
+        if type(item) is track_item and item.IsSelected():
             tracks.append(item)
     return tracks
 #
@@ -350,7 +354,10 @@ def solderExpander(pcb,tracks,clearance):
                 mask_layer = pcbnew.F_Mask
             wxLogDebug(" * Track: %s to %s, width %f mask_width %f" % (ToUnits(start),ToUnits(end),ToUnits(width), ToUnits(mask_width)),debug)
             #print (" * Track: %s to %s, width %f mask_width %f" % (ToUnits(start),ToUnits(end),ToUnits(width), ToUnits(mask_width)))
-            new_soldermask_line = pcbnew.DRAWSEGMENT(pcb)
+            if hasattr(pcbnew,'DRAWSEGMENT'):
+                new_soldermask_line = pcbnew.DRAWSEGMENT(pcb)
+            else:
+                new_soldermask_line = PCB_SHAPE()
             new_soldermask_line.SetStart(start)
             new_soldermask_line.SetEnd(end)
             new_soldermask_line.SetWidth(width+2*mask_width) #FromUnits(int(mask_width)))
