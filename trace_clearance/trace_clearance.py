@@ -49,7 +49,7 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator"
+        self.name = "Trace Clearance Generator\n version 1.1"
         self.category = ""
         self.description = (
             "Generate a copper pour keepout for a selected trace."
@@ -120,8 +120,12 @@ def selected_tracks(pcb):
     redundant functionality?
     """
     tracks = []
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
     for item in pcb.GetTracks():
-        if type(item) is pcbnew.TRACK and item.IsSelected():
+        if type(item) is track_item and item.IsSelected():
             tracks.append(item)
     return tracks
 
@@ -137,15 +141,24 @@ def set_keepouts(pcb, tracks, clearance):
         track_width = track.GetWidth()
         layer = track.GetLayerSet()
 
-        keepout = pcbnew.ZONE_CONTAINER(pcb)
-        pts = poly_points(track_start, track_end, track_width, clearance)
-        keepout.AddPolygon(pts)
-        keepout.SetIsKeepout(True)
-        keepout.SetDoNotAllowCopperPour(True)
-        keepout.SetDoNotAllowVias(False)
-        keepout.SetDoNotAllowTracks(False)
-        keepout.SetLayerSet(layer)
-
+        if  hasattr(pcbnew,'ZONE_CONTAINER'):
+            keepout = pcbnew.ZONE_CONTAINER(pcb)
+            pts = poly_points(track_start, track_end, track_width, clearance)
+            keepout.AddPolygon(pts)
+            keepout.SetIsKeepout(True)
+            keepout.SetDoNotAllowCopperPour(True)
+            keepout.SetDoNotAllowVias(False)
+            keepout.SetDoNotAllowTracks(False)
+            keepout.SetLayerSet(layer)
+        else:
+            keepout = pcbnew.ZONE
+            pts = poly_points(track_start, track_end, track_width, clearance)
+            keepout.AddPolygon(pts)
+            keepout.SetIsKeepout(True)
+            keepout.SetDoNotAllowCopperPour(True)
+            keepout.SetDoNotAllowVias(False)
+            keepout.SetDoNotAllowTracks(False)
+            keepout.SetLayerSet(layer)
         pcb.Add(keepout)
 
     pcbnew.Refresh()
