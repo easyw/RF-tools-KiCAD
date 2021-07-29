@@ -27,13 +27,19 @@
 import os
 import pcbnew
 import wx
-import numpy as np
+# import numpy as np
 from . import TraceClearanceDlg
-
+import math
 
 class TraceClearance_Dlg(TraceClearanceDlg.TraceClearanceDlg):
     """
     """
+
+    def SetSizeHints(self, sz1, sz2):
+        if wx.__version__ < '4.0':
+            self.SetSizeHintsSz(sz1, sz2)
+        else:
+            super(TraceClearance_Dlg, self).SetSizeHints(sz1, sz2)
 
     def __init__(self, parent):
         """
@@ -49,7 +55,7 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator\n version 1.1"
+        self.name = "Trace Clearance Generator\n version 1.2"
         self.category = ""
         self.description = (
             "Generate a copper pour keepout for a selected trace."
@@ -170,8 +176,10 @@ def poly_points(track_start, track_end, track_width, clearance):
     delta = track_width / 2 + clearance
     dx = track_end.x - track_start.x
     dy = track_end.y - track_start.y
-    theta = np.arctan2(dy, dx)
-    len = np.sqrt(np.power(dx, 2) + np.power(dy, 2))
+    # theta = np.arctan2(dy, dx)
+    theta = math.atan2(dy, dx)
+    # len = np.sqrt(np.power(dx, 2) + np.power(dy, 2))
+    len = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
     dx_norm = dx / len
     dy_norm = dy / len
 
@@ -196,16 +204,30 @@ def semicircle_points(circle_center, radius, angle_norm, is_start=True):
     """
     num_points = 20
 
-    angles = np.linspace(
-        angle_norm + np.pi / 2, angle_norm + 3 * np.pi / 2, num_points + 2
-    )
+    # angles = np.linspace(
+    #     angle_norm + np.pi / 2, angle_norm + 3 * np.pi / 2, num_points + 2
+    # )
+    start    = angle_norm + math.pi / 2
+    stop     = angle_norm + 3 * math.pi / 2
+    num_vals = num_points
+    delta = (stop-start)/(num_vals-1)
+    evenly_spaced = [start + i * delta for i in range(num_vals)]
+    # print(evenly_spaced)
+    angles = evenly_spaced
+    # wx.LogMessage(str(angles))
     angles = angles[1:-1]
+    # wx.LogMessage(str(angles)+'1')
     if not is_start:
-        angles = np.add(angles, np.pi)
+        # angles = np.add(angles, np.pi)
+        angles.append(math.pi)
     pts = []
     for ang in angles:
+        # pts.append(
+        #     circle_center
+        #     + pcbnew.wxPoint(radius * np.cos(ang), radius * np.sin(ang))
+        # )
         pts.append(
             circle_center
-            + pcbnew.wxPoint(radius * np.cos(ang), radius * np.sin(ang))
+            + pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang))
         )
     return pcbnew.wxPoint_Vector(pts)
