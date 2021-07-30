@@ -55,7 +55,7 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator\n version 1.2"
+        self.name = "Trace Clearance Generator\n version 1.3"
         self.category = ""
         self.description = (
             "Generate a copper pour keepout for a selected trace."
