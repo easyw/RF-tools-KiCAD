@@ -70,7 +70,10 @@ class uwArcPrimitive_wizard(FootprintWizardBase.FootprintWizard):
 
     # build a custom pad
     def smdCustomArcPad(self, module, size, pos, rad, name, angle_D, layer, ln, solder_clearance):
-        pad = D_PAD(module)
+        if hasattr(pcbnew, 'D_PAD'):
+            pad = D_PAD(module)
+        else:
+            pad = PAD.AddPrimitive(module)
         ## NB pads must be the same size and have the same center
         pad.SetSize(size)
         #pad.SetSize(pcbnew.wxSize(size[0]/5,size[1]/5))
@@ -97,7 +100,10 @@ class uwArcPrimitive_wizard(FootprintWizardBase.FootprintWizard):
         return pad
 
     def smdPad(self,module,size,pos,name,ptype,angle_D,layer,solder_clearance,offs=None):
-        pad = D_PAD(module)
+        if hasattr(pcbnew, 'D_PAD'):
+            pad = D_PAD(module)
+        else:
+            pad = PAD.AddPrimitive(module)
         pad.SetSize(size)
         pad.SetShape(ptype)  #PAD_SHAPE_RECT PAD_SHAPE_OVAL PAD_SHAPE_TRAPEZOID PAD_SHAPE_CIRCLE 
         # PAD_ATTRIB_CONN PAD_ATTRIB_SMD

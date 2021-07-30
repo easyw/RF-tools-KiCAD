@@ -39,7 +39,10 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
 
     # build a rectangular pad
     def smdRectPad(self, module, size, pos, name, angle, layer, solder_clearance):
-            pad = D_PAD(module)
+            if hasattr(pcbnew, 'D_PAD'):
+                pad = D_PAD(module)
+            else:
+                pad = PAD.AddPrimitive(module)
             pad.SetSize(size)
             pad.SetShape(PAD_SHAPE_RECT) #PAD_RECT)
             pad.SetAttribute(PAD_ATTRIB_SMD) #PAD_SMD)
@@ -64,7 +67,10 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
             
     # build a custom pad
     def smdCustomPolyPad(self, module, size, pos, name, vpoints, layer, solder_clearance):
-        pad = D_PAD(module)
+        if hasattr(pcbnew, 'D_PAD'):
+            pad = D_PAD(module)
+        else:
+            pad = PAD.AddPrimitive(module)
         ## NB pads must be the same size and have the same center
         pad.SetSize(size)
         #pad.SetSize(pcbnew.wxSize(size[0]/5,size[1]/5))
