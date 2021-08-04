@@ -102,7 +102,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\n version 2.4"
+        self.name = "Rounder for Tracks\n version 2.5"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -240,17 +240,35 @@ def create_Track(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None):
     pcb.Add(new_line)
     return new_line
 #
-def create_Arc(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None):
+def create_Arc(pcb,p1,p2,mp,lyr=None,w=None,Nn=None,Ts=None):
+    #import pcbnew
+    #from pcbnew import *
+    #b = pcbnew.GetBoard()
+    #new_shape = PCB_SHAPE()
+    #new_arc = PCB_ARC(new_shape)
+    #p1= wxPoint(203200000, 127000000)
+    #md= wxPoint(221160512, 134439488)
+    #p2= wxPoint(228600000, 152400000)
+    #new_arc.SetStart(p1)
+    #new_arc.SetMid(md)
+    #new_arc.SetEnd(p2)
+    #new_arc.SetWidth(250000)
+    #new_arc.SetLayer(pcbnew.B_Cu)
+    #b.Add(new_arc)
+    #pcbnew.Refresh()
+
     #draw segment to test
     #new_line = pcbnew.DRAWSEGMENT(pcb)
     if  hasattr(pcbnew,'TRACK'):
         new_arc = pcbnew.TRACK(pcb)
     else:
-        new_shape = PCB_SHAPE() 
-        new_arc = PCB_ARC(new_shape)
+        #new_shape = PCB_SHAPE() 
+        #new_arc = PCB_ARC(new_shape)
+        new_trk = PCB_TRACK(pcb) 
+        new_arc = PCB_ARC(new_trk)
     new_arc.SetStart(p1)
     new_arc.SetEnd(p2)
-    #new_arc.SetMid(wxPoint((p1.x-p2.x)+p1.x,(p1.y-p2.y)+p1.y))
+    new_arc.SetMid(mp)
     if w is None:
         new_arc.SetWidth(FromUnits(1.5)) #FromUnits(int(mask_width)))
     else:
@@ -357,11 +375,35 @@ def create_round_segments(pcb,sp,a1,ep,a2,cntr,rad,layer,width,Nn,N_SEGMENTS):
                 t = create_Track(pcb,p,points[i+1],layer,width,Nn,True) #adding ts code to segments
         t = create_Track(pcb,points[-2],ep,layer,width,Nn,True) #avoiding rounding on last segment
     else:
-        t = create_Arc(pcb,points[0],points[-1],layer,width,Nn,True)
-        #t = create_Arc(pcb,points[1],ep,layer,width,Nn,True) 
+        # for i, p in enumerate(points):
+        #     #if i < len (points)-1:
+        #     if i < len (points)-2:
+        #         t = create_Arc(pcb,p,points[i+1],layer,width,Nn,True) #adding ts code to segments
+        #t = create_Track(pcb,points[-2],ep,layer,width,Nn,True) #avoiding rounding on last segment
+        p1 = points[0]
+        p2 = points[-1]
+        mp = mid_point(points[0],points[-1],(a2-a1))
+        
+        # #t = create_Arc(pcb,points[0],points[-1],mp,layer,width,Nn,True)
+        #p1= wxPoint(203200000, 127000000)
+        #mp= wxPoint(221160512, 134439488)
+        #p2= wxPoint(228600000, 152400000)
+        #mp = mid_point(p1,p2,math.pi/2)
+        #wx.LogMessage(str(mp))
+        t = create_Arc(pcb,p1,p2,mp,layer,width,Nn,True)
+        #t = create_Arc(pcb,points[-2],ep,layer,width,Nn,True) 
     return points[-1]
 #
-
+def mid_point(p1,p2,angle): #wxpoints,angle in radians
+    """mid_point(prev_vertex,vertex,angle)-> mid_vertex
+       returns mid point on arc of angle between prev_vertex and vertex"""
+    #angle=math.radians(angle/2)
+    angle=(angle/2)
+    basic_angle=math.atan2(p2.y-p1.y,p2.x-p1.x)-math.pi/2
+    shift=(1-math.cos(angle))*math.hypot(p2.y-p1.y,p2.x-p1.x)/2/math.sin(angle)
+    midpoint=wxPoint((p2.x+p1.x)/2+shift*math.cos(basic_angle),(p2.y+p1.y)/2+shift*math.sin(basic_angle))
+    return midpoint
+###
 def create_round_points(pcb,sp,a1,ep,a2,cntr,rad,N_SEGMENTS):
     #TODO: Put some error checking in here...
     #Re-order the two converging tracks if we're selecting the startpoint
