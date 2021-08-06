@@ -50,6 +50,14 @@ def wxLogDebug(msg,show):
     if show:
         wx.LogMessage(msg)
 #
+def find_pcbnew_w():
+    windows = wx.GetTopLevelWindows()
+    pcbneww = [w for w in windows if "pcbnew" in w.GetTitle().lower()]
+    if len(pcbneww) != 1:
+        return None
+    return pcbneww[0]
+#
+
 #if (sys.version[0]) == '2':
 #    from .SolderExpanderDlg import SolderExpanderDlg
 #else:
@@ -60,6 +68,8 @@ from . import SolderExpanderDlg
 ToUnits=pcbnew.ToMM #ToMils
 FromUnits=pcbnew.FromMM #Mils
 
+global discretize
+discretize = False
 # import trace_solder_expansion; reload(trace_solder_expansion)
 
 # Python plugin stuff
@@ -80,15 +90,21 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
         return self.EndModal(wx.ID_DELETE)
 
     def __init__(self,  parent):
+        global discretize
         SolderExpanderDlg.SolderExpanderDlg.__init__(self, parent)
         self.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
         self.SetMinSize(self.GetSize())
+        #if self.m_checkBoxD.IsChecked():
+        #    discretize = True
+        #    #wx.LogMessage(str(discretize) + ' 0')
+        #else:
+        #    discretize = False
     
 #
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\n version 2.1"
+        self.name = "Solder Mask Expander for Tracks\n version 2.2"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -118,15 +134,42 @@ class Solder_Expander(pcbnew.ActionPlugin):
         # net_name = "GND"
         #aParameters = SolderExpanderDlg(None)
         # _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetTitle().lower().startswith('pcbnew')][0]
-        _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetName() == 'PcbFrame'][0]
-        aParameters = SolderExpander_Dlg(_pcbnew_frame)
+        global discretize
+        
+        # _pcbnew_frame = [x for x in wx.GetTopLevelWindows() if x.GetName() == 'PcbFrame'][0]
+        pcbnew_window = find_pcbnew_w()
+        aParameters = SolderExpander_Dlg(pcbnew_window)
         aParameters.m_clearanceMM.SetValue("0.2")
         aParameters.m_bitmap1.SetBitmap(wx.Bitmap( os.path.join(os.path.dirname(os.path.realpath(__file__)), "soldermask_clearance_help.png") ) )
         pcb = pcbnew.GetBoard()
-        if hasattr(pcb, 'm_Uuid'):
+        if not(hasattr(pcbnew,'DRAWSEGMENT')):
+        #if hasattr(pcb, 'm_Uuid'):
             aParameters.m_buttonDelete.Disable()
+            aParameters.m_buttonDelete.Hide()
+            aParameters.m_staticText1011.Hide()
+            #if aParameters.m_checkBoxD.IsChecked():
+            #    discretize = True
+            #    wx.LogMessage(str(discretize) + ' 1')
+            #else:
+            #    discretize = False
+        else:
+            aParameters.m_checkBoxD.Hide()
+            aParameters.m_staticText10111.Hide()
         modal_result = aParameters.ShowModal()
         clearance = FromMM(self.CheckInput(aParameters.m_clearanceMM.GetValue(), "extra clearance from track width"))
+        
+        if not(hasattr(pcbnew,'DRAWSEGMENT')):
+        #if hasattr(pcb, 'm_Uuid'):
+            aParameters.m_buttonDelete.Disable()
+            aParameters.m_buttonDelete.Hide()
+            aParameters.m_staticText1011.Hide()
+            discretize = aParameters.m_checkBoxD.GetValue()
+            #if aParameters.m_checkBoxD.IsChecked():
+            #    discretize = True
+            #    wx.LogMessage(str(discretize) + ' 1')
+            #else:
+            #    discretize = False
+        
         if clearance is not None:
             if modal_result == wx.ID_OK:
                 #pcb = pcbnew.GetBoard()
@@ -438,69 +481,99 @@ def create_Solder(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None,pcbG=None):
     return new_line
 #
 def solderExpander(pcb,tracks,clearance):
-        mask_width = clearance #FromMM(.5) # msk espansion value each side
-        #mask_layer = pcbnew.F_Mask
-        
-        # pcb = LoadBoard(in_filename)
-        #pcb = pcbnew.GetBoard() 
-        
-        #ToUnits=pcbnew.ToMM #ToMils
-        #FromUnits=pcbnew.FromMM #Mils
-        
-        for item in tracks:
-            start = item.GetStart()
-            end = item.GetEnd()
-            width = item.GetWidth()
-            layerId = item.GetLayer()
-            layer = item.GetLayerSet()
-            layerN = item.GetLayerName()
-            layer = pcb.GetLayerID(layerN)
-            track_net_name = item.GetNetname()
-            ts = 0
-            for c in track_net_name:
-                ts = ts + ord(c)
-            #wx.LogMessage("LayerName"+str(layer))
+    global discretize
+    # wx.LogMessage(str(discretize) + ' 2')
+    mask_width = clearance #FromMM(.5) # msk espansion value each side
+    #mask_layer = pcbnew.F_Mask
+    
+    # pcb = LoadBoard(in_filename)
+    #pcb = pcbnew.GetBoard() 
+    
+    #ToUnits=pcbnew.ToMM #ToMils
+    #FromUnits=pcbnew.FromMM #Mils
+    
+    for item in tracks:
+        start = item.GetStart()
+        end = item.GetEnd()
+        width = item.GetWidth()
+        layerId = item.GetLayer()
+        layer = item.GetLayerSet()
+        layerN = item.GetLayerName()
+        layer = pcb.GetLayerID(layerN)
+        track_net_name = item.GetNetname()
+        ts = 0
+        for c in track_net_name:
+            ts = ts + ord(c)
+        #wx.LogMessage("LayerName"+str(layer))
 
-            if layerId == pcbnew.F_Cu:
-                mask_layer = pcbnew.F_Mask
-            elif layerId == pcbnew.B_Cu: #'B_Cu':
-                mask_layer = pcbnew.B_Mask
-            else: #we shouldn't arrive here
-                mask_layer = pcbnew.F_Mask
-            wxLogDebug(" * Track: %s to %s, width %f mask_width %f" % (ToUnits(start),ToUnits(end),ToUnits(width), ToUnits(mask_width)),debug)
-            #print (" * Track: %s to %s, width %f mask_width %f" % (ToUnits(start),ToUnits(end),ToUnits(width), ToUnits(mask_width)))
-            if hasattr(pcbnew,'DRAWSEGMENT'):
-                new_soldermask_line = pcbnew.DRAWSEGMENT(pcb)
-            elif type(item) is pcbnew.PCB_TRACK:
-                #new_soldermask_shape = PCB_SHAPE()
-                #new_soldermask_line = pcbnew.Cast_to_PCB_SHAPE(new_soldermask_shape)
-                new_soldermask_line = PCB_SHAPE()
-                new_soldermask_line.SetStart(start)
-                new_soldermask_line.SetEnd(end)
-                new_soldermask_line.SetWidth(width+2*mask_width)
-                new_soldermask_line.SetLayer(mask_layer) #pcbnew.F_Mask) #pcb.GetLayerID(mask_layer))
-                # again possible to mark via as own since no timestamp_t binding kicad v5.1.4
-                if hasattr(new_soldermask_line, 'SetTimeStamp'):
-                    new_soldermask_line.SetTimeStamp(ts)  # adding a unique number (this netname) as timestamp to mark this via as generated by this script on this netname
-                pcb.Add(new_soldermask_line)
-            else: #PCB_ARC kicad 5.99
-                #new_soldermask_line = PCB_ARC(PCB_SHAPE())
-                #new_soldermask_line.SetMid(item.GetMid())
-                #wxLogDebug(str(item.GetMid())+' mid',True)
-                md = item.GetMid()
-                cnt, rad = getCircleCenterRadius(start,end,md)
-                #wxLogDebug(str(cnt)+' center, radius '+str(rad),True)
-                netName = None
+        if layerId == pcbnew.F_Cu:
+            mask_layer = pcbnew.F_Mask
+        elif layerId == pcbnew.B_Cu: #'B_Cu':
+            mask_layer = pcbnew.B_Mask
+        else: #we shouldn't arrive here
+            mask_layer = pcbnew.F_Mask
+        wxLogDebug(" * Track: %s to %s, width %f mask_width %f" % (ToUnits(start),ToUnits(end),ToUnits(width), ToUnits(mask_width)),debug)
+        #print (" * Track: %s to %s, width %f mask_width %f" % (ToUnits(start),ToUnits(end),ToUnits(width), ToUnits(mask_width)))
+        if hasattr(pcbnew,'DRAWSEGMENT'):
+            new_soldermask_line = pcbnew.DRAWSEGMENT(pcb)
+        elif type(item) is pcbnew.PCB_TRACK:
+            #new_soldermask_shape = PCB_SHAPE()
+            #new_soldermask_line = pcbnew.Cast_to_PCB_SHAPE(new_soldermask_shape)
+            new_soldermask_line = PCB_SHAPE()
+            new_soldermask_line.SetStart(start)
+            new_soldermask_line.SetEnd(end)
+            new_soldermask_line.SetWidth(width+2*mask_width)
+            new_soldermask_line.SetLayer(mask_layer) #pcbnew.F_Mask) #pcb.GetLayerID(mask_layer))
+            # again possible to mark via as own since no timestamp_t binding kicad v5.1.4
+            if hasattr(new_soldermask_line, 'SetTimeStamp'):
+                new_soldermask_line.SetTimeStamp(ts)  # adding a unique number (this netname) as timestamp to mark this via as generated by this script on this netname
+            pcb.Add(new_soldermask_line)
+        else: #PCB_ARC kicad 5.99
+            #new_soldermask_line = PCB_ARC(PCB_SHAPE())
+            #new_soldermask_line.SetMid(item.GetMid())
+            #wxLogDebug(str(item.GetMid())+' mid',True)
+            md = item.GetMid()
+            #wxLogDebug(str(cnt)+' center, radius '+str(rad),True)
+            netName = None
+            width_new = width +2*mask_width
+            cnt, rad = getCircleCenterRadius(start,end,md)
+            if discretize:
                 segNBR = 16
-                width_new = width +2*mask_width
                 groupName = uuid.uuid4() #randomword(5)
                 pcb_group = pcbnew.PCB_GROUP(None)
                 pcb_group.SetName(groupName)
                 pcb.Add(pcb_group)
-                #pcb_group.AddItem(m)
                 create_round_segs(pcb,start,end,cnt,rad,mask_layer,width_new,netName,segNBR,pcb_group)
-            #break;
-        pcbnew.Refresh()        
+            else:
+                createDwgArc(pcb,start,end,md,cnt,mask_layer,width_new,netName)
+        #break;
+    pcbnew.Refresh()        
+#
+def createDwgArc(pcb,p1,p2,mp,cn,lyr=None,w=None,Nn=None,Ts=None):
+    # new_arc = pcbnew.PCB_SHAPE()
+    # new_arc = pcbnew.Cast_to_PCB_SHAPE(new_arc)
+    # new_arc.SetShape(pcbnew.SHAPE_T_ARC)
+    # new_arc.SetStart(p1)
+    # new_arc.SetMid(md)
+    # new_arc.SetEnd(p2)
+    # new_arc.SetWidth(w) #250000)
+    
+    new_arc=pcbnew.PCB_SHAPE()
+    new_arc.SetShape(pcbnew.SHAPE_T_ARC)
+    use_geo=True
+    if use_geo:
+    #    new_arc.SetArcGeometry(aStart: 'wxPoint', aMid: 'wxPoint', aEnd: 'wxPoint')
+        new_arc.SetArcGeometry(p1,mp,p2)
+    else:
+        new_arc.SetArcStart(p1)
+        new_arc.SetArcEnd(p2)
+        new_arc.SetCenter(cn)
+    new_arc.SetWidth(w)
+    if lyr is None:
+        lyr = F_SilkS
+    new_arc.SetLayer(lyr) #pcbnew.F_SilkS) #pcb.GetLayerID(mask_layer))
+    pcb.Add(new_arc)
+    return new_arc
 #
 def getAngleRadians(p1,p2):
     #return math.degrees(math.atan2((p1.y-p2.y),(p1.x-p2.x)))

@@ -17,7 +17,7 @@ import wx.xrc
 class SolderExpanderDlg ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Solder Mask Expansion", pos = wx.DefaultPosition, size = wx.Size( 373,480 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Solder Mask Expansion", pos = wx.DefaultPosition, size = wx.Size( 579,761 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -92,6 +92,21 @@ class SolderExpanderDlg ( wx.Dialog ):
 
 
 		bSizer3.Add( bSizer11, 1, wx.EXPAND, 5 )
+
+		bSizerSet = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText10111 = wx.StaticText( self, wx.ID_ANY, u"check this to discretize arcs", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText10111.Wrap( -1 )
+
+		bSizerSet.Add( self.m_staticText10111, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.m_checkBoxD = wx.CheckBox( self, wx.ID_ANY, u"segments", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_checkBoxD.SetToolTip( u"check this to discretize arcs with segments" )
+
+		bSizerSet.Add( self.m_checkBoxD, 0, wx.ALL, 5 )
+
+
+		bSizer3.Add( bSizerSet, 1, wx.EXPAND, 5 )
 
 
 		self.SetSizer( bSizer3 )
