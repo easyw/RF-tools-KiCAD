@@ -64,7 +64,8 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
         if hasattr(pcbnew, 'D_PAD'):
             pad = D_PAD(module)
         else:
-            pad = PAD.AddPrimitive(module)
+            pad = PAD(module)
+        #pad = PAD(module)
         ## NB pads must be the same size and have the same center
         pad.SetSize(size)
         #pad.SetSize(pcbnew.wxSize(size[0]/5,size[1]/5))
@@ -87,14 +88,17 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
         else:
             pad.SetLayerSet( LSET(layer) )
         
-        pad.AddPrimitive(vpoints,0) # (size[0]))
+        if hasattr(pcbnew, 'D_PAD'):
+            pad.AddPrimitive(vpoints,0) # (size[0]))
+        else:
+            pad.AddPrimitivePoly(vpoints, 0, True) # (size[0]))
         return pad
 
     def smdPad(self,module,size,pos,name,ptype,angle_D,layer,solder_clearance,offs=None):
         if hasattr(pcbnew, 'D_PAD'):
             pad = D_PAD(module)
         else:
-            pad = PAD.AddPrimitive(module)
+            pad = PAD(module)
         pad.SetSize(size)
         pad.SetShape(ptype)  #PAD_SHAPE_RECT PAD_SHAPE_OVAL PAD_SHAPE_TRAPEZOID PAD_SHAPE_CIRCLE 
         # PAD_ATTRIB_CONN PAD_ATTRIB_SMD
@@ -194,8 +198,13 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
         self.draw.Reference( 0+length/2, -textposy-height/2, text_size )
         self.draw.Value( 0+length/2, textposy+height/2+text_size/2, text_size )
         # set SMD attribute
-        module.SetAttributes(pcbnew.MOD_VIRTUAL)
-        __version__ = 1.3
+        if hasattr(pcbnew, 'MOD_VIRTUAL'):
+            module.SetAttributes(pcbnew.MOD_VIRTUAL)
+        else:
+            module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
+        # module.SetAttributes(pcbnew.MOD_VIRTUAL)
+        # module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
+        __version__ = 1.5
         self.buildmessages += ("version: {:.1f}".format(__version__))
 
 uwTaper_wizard().register()

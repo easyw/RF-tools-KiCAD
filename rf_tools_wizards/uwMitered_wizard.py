@@ -6,6 +6,7 @@
 from __future__ import division
 import FootprintWizardBase
 
+import pcbnew
 from pcbnew import *
 import math
 
@@ -42,7 +43,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
             if hasattr(pcbnew, 'D_PAD'):
                 pad = D_PAD(module)
             else:
-                pad = PAD.AddPrimitive(module)
+                pad = PAD(module)
             pad.SetSize(size)
             pad.SetShape(PAD_SHAPE_RECT) #PAD_RECT)
             pad.SetAttribute(PAD_ATTRIB_SMD) #PAD_SMD)
@@ -70,7 +71,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         if hasattr(pcbnew, 'D_PAD'):
             pad = D_PAD(module)
         else:
-            pad = PAD.AddPrimitive(module)
+            pad = PAD(module)
         ## NB pads must be the same size and have the same center
         pad.SetSize(size)
         #pad.SetSize(pcbnew.wxSize(size[0]/5,size[1]/5))
@@ -93,7 +94,11 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         else:
             pad.SetLayerSet( LSET(layer) )
         
-        pad.AddPrimitive(vpoints,0) # (size[0]))
+        if hasattr(pcbnew, 'D_PAD'):
+            pad.AddPrimitive(vpoints,0) # (size[0]))
+        else:
+            pad.AddPrimitivePoly(vpoints, 0, True) # (size[0]))
+        
         return pad
 
     def Polygon(self, points, layer):
@@ -190,7 +195,11 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
     #def BuildThisFootprint(self):
     def BuildFootprint(self):
 
-        module = MODULE(None) # create a new module
+        if hasattr(pcbnew, 'MODULE'):
+            module = MODULE(None) # create a new module
+        else:
+            module = FOOTPRINT(None) # create a new module
+        #module = self.module
         self.module = module
         self.buildmessages = ""
 
@@ -320,7 +329,11 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         # moving anchor to center of first pad
         module.MoveAnchorPosition(wxPoint(-width/2,pad_l/2))
         # set SMD attribute
-        module.SetAttributes(MOD_VIRTUAL)
+        # set SMD attribute
+        if hasattr(pcbnew, 'MOD_VIRTUAL'):
+            module.SetAttributes(pcbnew.MOD_VIRTUAL)
+        else:
+            module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
         self.buildmessages = (
             "Building new {name} footprint with the following parameters:\n\n"
             .format(name=module.name))
@@ -328,7 +341,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         self.buildmessages += ("PCB Height: {0:.4f}mm\n".format(ToMM(height)))
         self.buildmessages += ("Angle: {:.1f}deg\n\n".format(angle_deg))
         self.buildmessages += ("Cut: {0:.2f}%\n".format(cut_pc*100))
-        __version__ = 1.5
+        __version__ = 1.6
         self.buildmessages += ("version: {:.1f}".format(__version__))
         
 
