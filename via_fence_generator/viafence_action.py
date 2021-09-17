@@ -9,6 +9,7 @@ import time
 import json
 import math
 import wx
+import uuid
 
 from collections import OrderedDict
 from .viafence import *
@@ -33,7 +34,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 2.3"
+        self.name = "Via Fence Generator\nversion 2.4"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -407,6 +408,7 @@ class ViaFenceAction(pcbnew.ActionPlugin):
             self.selfToMainDialog()
             if hasattr(self.boardObj, 'm_Uuid'):
                 self.mainDlg.m_buttonDelete.Disable()
+                self.mainDlg.m_buttonDelete.SetToolTip( u"fencing vias are placed in a group,\nto delete fencing vias, just delete the group" )
             reply = self.mainDlg.ShowModal()
             if (reply == wx.ID_OK):
                 # User pressed OK.
@@ -499,10 +501,17 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 #self.checkPads()
                 #wx.LogMessage(str(len(self.viaPointsSafe)))
                 viaObjList = self.createVias(self.viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
+                if not(hasattr(pcbnew,'DRAWSEGMENT')): #creating a group of fencing vias
+                    groupName = uuid.uuid4() #randomword(5)
+                    pcb_group = pcbnew.PCB_GROUP(None)
+                    pcb_group.SetName(groupName)
+                    self.boardObj.Add(pcb_group)
+                    for v in viaObjList:
+                        pcb_group.AddItem(v)
                 via_nbr = len(self.viaPointsSafe)
                 msg = u'Placed {0:} Fencing Vias.\n\u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
                 if removed:
-                    msg += u'\n\u26EC Removed DRC colliding vias.'
+                    msg += u'\n\u281B Removed DRC colliding vias.'
                 wx.LogMessage(msg)
                 #viaObjList = self.createVias(viaPoints, self.viaDrill, self.viaSize, self.viaNetId)
                 #via_nbr = len(viaPoints)
