@@ -28,6 +28,15 @@
 [![Via Fence Generator](resources/via-fencing-preview.png?raw=true "Via Fence Generator")](resources/via-fencing.png?raw=true "Via Fence Generator")
 
 <br/>
+
+Trace Clearance Generator: 
+
+Generate a copper pour keepout for a selected trace. 
+
+![Trace Clearance Generator](resources/trace-clearance.png?raw=true "trace clearance")
+
+
+<br/>
 <hr>
 <h2>Footprint Wizards:</h2>
 
@@ -68,12 +77,5 @@ Simply launch the fotprint wizard and select the uwave tool:
 
 ![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
 
-<br>
-
-Trace Clearance Generator: 
-
-Generate a copper pour keepout for a selected trace. 
-
-![Trace Clearance Generator](resources/trace-clearance.png?raw=true "trace clearance")
 
 
