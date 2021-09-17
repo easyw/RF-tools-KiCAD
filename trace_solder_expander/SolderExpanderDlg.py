@@ -101,7 +101,7 @@ class SolderExpanderDlg ( wx.Dialog ):
 		bSizerSet.Add( self.m_staticText10111, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 		self.m_checkBoxD = wx.CheckBox( self, wx.ID_ANY, u"segments", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_checkBoxD.SetToolTip( u"check this to discretize arcs with segments" )
+		# self.m_checkBoxD.SetToolTip( u"check this to discretize arcs with segments" )
 
 		bSizerSet.Add( self.m_checkBoxD, 0, wx.ALL, 5 )
 
