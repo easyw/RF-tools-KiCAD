@@ -9,6 +9,7 @@
 * Solder Mask Expander (*Action Plugin*)
 * Track Length (*Action Plugin*)
 * Via Fence Generator (*Action Plugin*) [pyclipper required]
+* Trace Clearance Generator
 
 <br/>
 
@@ -66,4 +67,13 @@ Simply launch the fotprint wizard and select the uwave tool:
 <br>
 
 ![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
+
+<br>
+
+Trace Clearance Generator: 
+
+Generate a copper pour keepout for a selected trace. 
+
+![Trace Clearance Generator](resources/trace-clearance.png?raw=true "trace clearance")
+
 

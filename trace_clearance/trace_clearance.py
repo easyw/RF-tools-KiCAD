@@ -159,6 +159,7 @@ def set_keepouts(pcb, tracks, clearance):
         else:
             keepout = pcbnew.ZONE
             pts = poly_points(track_start, track_end, track_width, clearance)
+            wx.LogMessage(str(pts))
             keepout.AddPolygon(pts)
             keepout.SetIsKeepout(True)
             keepout.SetDoNotAllowCopperPour(True)
