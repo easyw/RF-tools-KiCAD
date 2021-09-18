@@ -34,7 +34,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 2.4"
+        self.name = "Via Fence Generator\nversion 2.5"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -415,6 +415,7 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 # Assemble a list of pcbnew.BOARD_ITEMs derived objects that support GetStart/GetEnd and IsOnLayer
                 self.mainDialogToSelf()
                 lineObjects = []
+                arcObjects = []
         
                 # Do we want to include net tracks?
                 if (self.isNetFilterChecked):
@@ -444,7 +445,12 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                         trk_type = pcbnew.TRACK
                     else:
                         trk_type = pcbnew.PCB_TRACK
+                        trk_arc  = pcbnew.PCB_ARC
                     for item in self.boardObj.GetTracks():
+                        #wx.LogMessage('type track: %s' % str(type(item)))
+                        if type(item) is trk_arc and item.IsSelected():
+                            wx.LogMessage('type track: %s' % str(type(item)))
+                            arcObjects += [item]
                         if type(item) is trk_type and item.IsSelected():
                             lineObjects += [item]
                     
@@ -453,15 +459,49 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     # Filter by layer
                     # TODO: Make layer selection also a regex
                     lineObjects = [lineObject for lineObject in lineObjects if lineObject.IsOnLayer(self.layerId)]
-        
+                    arcObjects = [arcObject for arcObject in arcObjects if arcObject.IsOnLayer(self.layerId)]
+                #wx.LogMessage('arcs: %s' % str(arcObjects))
+                
+                for arc in arcObjects:
+                    segNBR = 16
+                    start = arc.GetStart()
+                    end = arc.GetEnd()
+                    md = arc.GetMid()
+                    width = arc.GetWidth()
+                    layer = arc.GetLayerSet()
+                    netName = None
+                    cnt, rad = getCircleCenterRadius(start,end,md)
+                    pts = create_round_pts(start,end,cnt,rad,layer,width,netName,segNBR)
+                    self.pathListArcs =  [[ [p.x, p.y],
+                                    [pts[i+1].x, pts[i+1].y]   ]
+                                    for i,p in enumerate(pts[:-1])]
+                    # Generate via fence
+                    try:
+                        viaPointsArcs = []
+                        if len (arcObjects) > 0:
+                            viaPointsArcs = generateViaFence(self.pathListArcs, self.viaOffset, self.viaPitch)
+                            viaObjListArcs = self.createVias(viaPointsArcs, self.viaDrill, self.viaSize, self.viaNetId)
+                    except Exception as exc:
+                        wx.LogMessage('exception on via fence generation: %s' % str(exc))
+                        import traceback
+                        wx.LogMessage(traceback.format_exc())
+                        viaPoints = []
+                        #wx.LogMessage('pL: %s' % str(self.pathListArcs))
+                #wx.LogMessage('pts: %s' % str(pts))
+                
                 # Generate a path list from the pcbnew.BOARD_ITEM objects
                 self.pathList =  [[ [lineObject.GetStart()[0], lineObject.GetStart()[1]],
                                     [lineObject.GetEnd()[0],   lineObject.GetEnd()[1]]   ]
                                     for lineObject in lineObjects]
-        
+                #wx.LogMessage('pL: %s' % str(self.pathList))
+                                    
+                
                 # Generate via fence
                 try:
+                    viaPointsArcs = []
                     viaPoints = generateViaFence(self.pathList, self.viaOffset, self.viaPitch)
+                    #if len (arcObjects) > 0:
+                    #    viaPointsArcs = generateViaFence(self.pathListArcs, self.viaOffset, self.viaPitch)
                 except Exception as exc:
                     wx.LogMessage('exception on via fence generation: %s' % str(exc))
                     import traceback
@@ -501,6 +541,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 #self.checkPads()
                 #wx.LogMessage(str(len(self.viaPointsSafe)))
                 viaObjList = self.createVias(self.viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
+                viaObjListArcs = []
+                if len (arcObjects) > 0:
+                    viaObjListArcs = self.createVias(viaPointsArcs, self.viaDrill, self.viaSize, self.viaNetId)
                 if not(hasattr(pcbnew,'DRAWSEGMENT')): #creating a group of fencing vias
                     groupName = uuid.uuid4() #randomword(5)
                     pcb_group = pcbnew.PCB_GROUP(None)
@@ -508,7 +551,10 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     self.boardObj.Add(pcb_group)
                     for v in viaObjList:
                         pcb_group.AddItem(v)
+                    for v in viaObjListArcs:
+                        pcb_group.AddItem(v)
                 via_nbr = len(self.viaPointsSafe)
+                via_nbr += len(viaPointsArcs)
                 msg = u'Placed {0:} Fencing Vias.\n\u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
                 if removed:
                     msg += u'\n\u281B Removed DRC colliding vias.'

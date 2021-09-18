@@ -287,4 +287,100 @@ def generateViaFence(pathList, viaOffset, viaPitch, vFunc = lambda *args,**kwarg
 
     return viaPoints
 
-
+def create_round_pts(sp,ep,cntr,rad,layer,width,Nn,N_SEGMENTS):
+    start_point = sp
+    end_point = ep
+    pos = sp
+    next_pos = ep
+    a1 = getAngleRadians(cntr,sp)
+    a2 = getAngleRadians(cntr,ep)
+    #wxLogDebug('a1:'+str(math.degrees(a1))+' a2:'+str(math.degrees(a2))+' a2-a1:'+str(math.degrees(a2-a1)),debug)
+    if (a2-a1) > 0 and abs(a2-a1) > math.radians(180):
+        deltaA = -(math.radians(360)-(a2-a1))/N_SEGMENTS
+        #wxLogDebug('deltaA reviewed:'+str(math.degrees(deltaA)),debug)
+    elif (a2-a1) < 0 and abs(a2-a1) > math.radians(180):
+        deltaA = (math.radians(360)-abs(a2-a1))/N_SEGMENTS
+        #wxLogDebug('deltaA reviewed2:'+str(math.degrees(deltaA)),debug)
+    else:
+        deltaA = (a2-a1)/N_SEGMENTS
+    delta=deltaA
+    #wxLogDebug('delta:'+str(math.degrees(deltaA))+' radius:'+str(ToMM(rad)),debug)
+    points = []
+    #import round_trk; import importlib; importlib.reload(round_trk)
+    for ii in range (N_SEGMENTS+1): #+1):
+        points.append(pos)
+        #t = create_Track(pos,pos)
+        prv_pos = pos
+        #pos = pos + fraction_delta
+        #posPolar = cmath.polar(pos)
+        #(rad) * cmath.exp(math.radians(deltaA)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
+        #pos = wxPoint(posPolar.real+sp.x,posPolar.imag+sp.y)
+        pos = rotatePoint(rad,a1,delta,cntr)
+        delta=delta+deltaA
+        #wxLogDebug("pos:"+str(ToUnits(prv_pos.x))+":"+str(ToUnits(prv_pos.y))+";"+str(ToUnits(pos.x))+":"+str(ToUnits(pos.y)),debug)
+    return points
+    #if 0:
+    #    for i, p in enumerate(points):
+    #        #if i < len (points)-1:
+    #        if i < len (points)-2:
+    #            t = create_Solder(pcb,p,points[i+1],layer,width,Nn,True,pcbGroup) #adding ts code to segments
+    #    t = create_Solder(pcb,points[-2],ep,layer,width,Nn,True,pcbGroup) #avoiding rounding on last segment
+#
+# Function to find the circle on
+# which the given three points lie
+def getCircleCenterRadius(sp,ep,ip):
+    # findCircle(x1, y1, x2, y2, x3, y3) :
+    # NB add always set float even if values are pcb internal Units!!!
+    x1 = float(sp.x); y1 = float(sp.y)
+    x2 = float(ep.x); y2 = float(ep.y)
+    x3 = float(ip.x); y3 = float(ip.y)
+    
+    x12 = x1 - x2;
+    x13 = x1 - x3;
+    y12 = y1 - y2;
+    y13 = y1 - y3;
+    y31 = y3 - y1;
+    y21 = y2 - y1;
+    x31 = x3 - x1;
+    x21 = x2 - x1;
+    
+    # x1^2 - x3^2
+    sx13 = math.pow(x1, 2) - math.pow(x3, 2);
+    # y1^2 - y3^2
+    sy13 = math.pow(y1, 2) - math.pow(y3, 2);
+    sx21 = math.pow(x2, 2) - math.pow(x1, 2);
+    sy21 = math.pow(y2, 2) - math.pow(y1, 2);
+    
+    f = (((sx13) * (x12) + (sy13) *
+      (x12) + (sx21) * (x13) +
+      (sy21) * (x13)) // (2 *
+      ((y31) * (x12) - (y21) * (x13))));
+          
+    g = (((sx13) * (y12) + (sy13) * (y12) +
+      (sx21) * (y13) + (sy21) * (y13)) //
+      (2 * ((x31) * (y12) - (x21) * (y13))));
+    
+    c = (-math.pow(x1, 2) - math.pow(y1, 2) - 2 * g * x1 - 2 * f * y1);
+    
+    # eqn of circle be x^2 + y^2 + 2*g*x + 2*f*y + c = 0
+    # where centre is (h = -g, k = -f) and
+    # radius r as r^2 = h^2 + k^2 - c
+    h = -g;
+    k = -f;
+    sqr_of_r = h * h + k * k - c;
+    # r is the radius
+    r = round(math.sqrt(sqr_of_r), 5);
+    Cx = h
+    Cy = k
+    radius = r
+    return wx.Point(Cx,Cy), radius
+#
+def getAngleRadians(p1,p2):
+    #return math.degrees(math.atan2((p1.y-p2.y),(p1.x-p2.x)))
+    return (math.atan2((p1.y-p2.y),(p1.x-p2.x)))
+#
+def rotatePoint(r,sa,da,c):
+    # sa, da in radians
+    x = c.x - math.cos(sa+da) * r
+    y = c.y - math.sin(sa+da) * r
+    return wx.Point(x,y)
