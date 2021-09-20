@@ -34,7 +34,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 2.5"
+        self.name = "Via Fence Generator\nversion 2.6"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -417,6 +417,14 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 lineObjects = []
                 arcObjects = []
         
+                # creating a unique group for vias
+                if not(hasattr(pcbnew,'DRAWSEGMENT')): #creating a group of fencing vias
+                    groupName = uuid.uuid4() #randomword(5)
+                    pcb_group = pcbnew.PCB_GROUP(None)
+                    pcb_group.SetName(groupName)
+                    self.boardObj.Add(pcb_group)
+                
+                
                 # Do we want to include net tracks?
                 if (self.isNetFilterChecked):
                     # Find nets that match the generated regular expression and add their tracks to the list
@@ -424,7 +432,20 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     for netId in self.netMap:
                         if re.match(netRegex, self.netMap[netId].GetNetname()):
                             for trackObject in self.boardObj.TracksInNet(netId):
-                                lineObjects += [trackObject]
+                                #wx.LogMessage('type '+str(trackObject.GetStart()))
+                                #wx.LogMessage('type '+str(trackObject.GetMid()))
+                                if (hasattr(pcbnew,'DRAWSEGMENT')):
+                                    trk_type = pcbnew.TRACK
+                                else:
+                                    trk_type = pcbnew.PCB_TRACK
+                                    trk_arc  = pcbnew.PCB_ARC
+                                if hasattr(trackObject,'GetMid()'):
+                                    arcObjects += [trackObject]
+                                elif type(trackObject) is trk_type:
+                                    lineObjects += [trackObject]
+                                
+                    # wx.LogMessage('net selected '+str(lineObjects))
+                    # wx.LogMessage('net selected '+str(arcObjects))
         
                 # Do we want to include drawing segments?
                 if (self.isIncludeDrawingChecked):
@@ -481,6 +502,8 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                         if len (arcObjects) > 0:
                             viaPointsArcs = generateViaFence(self.pathListArcs, self.viaOffset, self.viaPitch)
                             viaObjListArcs = self.createVias(viaPointsArcs, self.viaDrill, self.viaSize, self.viaNetId)
+                            for v in viaObjListArcs:
+                                pcb_group.AddItem(v)
                     except Exception as exc:
                         wx.LogMessage('exception on via fence generation: %s' % str(exc))
                         import traceback
@@ -541,18 +564,18 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 #self.checkPads()
                 #wx.LogMessage(str(len(self.viaPointsSafe)))
                 viaObjList = self.createVias(self.viaPointsSafe, self.viaDrill, self.viaSize, self.viaNetId)
-                viaObjListArcs = []
-                if len (arcObjects) > 0:
-                    viaObjListArcs = self.createVias(viaPointsArcs, self.viaDrill, self.viaSize, self.viaNetId)
+                # viaObjListArcs = []
+                # if len (arcObjects) > 0:
+                #     viaObjListArcs = self.createVias(viaPointsArcs, self.viaDrill, self.viaSize, self.viaNetId)
                 if not(hasattr(pcbnew,'DRAWSEGMENT')): #creating a group of fencing vias
-                    groupName = uuid.uuid4() #randomword(5)
-                    pcb_group = pcbnew.PCB_GROUP(None)
-                    pcb_group.SetName(groupName)
-                    self.boardObj.Add(pcb_group)
+                    # groupName = uuid.uuid4() #randomword(5)
+                    # pcb_group = pcbnew.PCB_GROUP(None)
+                    # pcb_group.SetName(groupName)
+                    # self.boardObj.Add(pcb_group)
                     for v in viaObjList:
                         pcb_group.AddItem(v)
-                    for v in viaObjListArcs:
-                        pcb_group.AddItem(v)
+                    #for v in viaObjListArcs:
+                    #    pcb_group.AddItem(v)
                 via_nbr = len(self.viaPointsSafe)
                 via_nbr += len(viaPointsArcs)
                 msg = u'Placed {0:} Fencing Vias.\n\u26A0 Please run a DRC check on your board.'.format(str(via_nbr))
