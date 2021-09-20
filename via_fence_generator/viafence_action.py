@@ -306,6 +306,8 @@ class ViaFenceAction(pcbnew.ActionPlugin):
             if self.mainDlg.lstViaNet.GetString(i) in ["GND", "/GND"]:
                 self.mainDlg.lstViaNet.SetSelection(i)
                 break
+        if not(hasattr(pcbnew,'DRAWSEGMENT')) and temporary_fix: #temporary_fix!!!
+            self.mainDlg.chkNetFilter.Enable (False)
         self.mainDlg.chkNetFilter.SetValue(self.isNetFilterChecked)
         self.mainDlg.txtNetFilter.Enable(self.isNetFilterChecked)
         self.mainDlg.chkLayer.SetValue(self.isLayerChecked)
@@ -371,20 +373,24 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         if pyclip:
         #import pyclipper
             import os
+            #self.mainDlg = MainDialog(None)
+            #self.selfToMainDialog()
+            
             self.boardObj = pcbnew.GetBoard()
             self.boardDesignSettingsObj = self.boardObj.GetDesignSettings()
             self.boardPath = os.path.dirname(os.path.realpath(self.boardObj.GetFileName()))
             self.layerMap = self.getLayerMap()
             if not(hasattr(pcbnew,'DRAWSEGMENT')) and temporary_fix:
+                self.highlightedNetId = -1
                 # Nasty work around... GetHighLightNetCodes returns a swig object >_<
-                hl_nets = filter(lambda x: x.IsSelected(), self.boardObj.GetTracks())
-                hl_net_codes = set(net.GetNetCode() for net in hl_nets)
-                if len(hl_net_codes) == 1:
-                    self.highlightedNetId = hl_net_codes.pop()
-                else:
-                    wdlg = wx.MessageDialog(None, u"\u2718 ERROR Please only select one net",'ERROR message',wx.OK | wx.ICON_WARNING)# wx.ICON_ERROR)
-                    result = wdlg.ShowModal()
-                    return
+                # hl_nets = filter(lambda x: x.IsSelected(), self.boardObj.GetTracks())
+                # hl_net_codes = set(net.GetNetCode() for net in hl_nets)
+                # if len(hl_net_codes) == 1:
+                #     self.highlightedNetId = hl_net_codes.pop()
+                # else:
+                #     wdlg = wx.MessageDialog(None, u"\u2718 ERROR Please only select one net",'ERROR message',wx.OK | wx.ICON_WARNING)# wx.ICON_ERROR)
+                #     result = wdlg.ShowModal()
+                #     return
             else:
                 self.highlightedNetId = self.boardObj.GetHighLightNetCode()
             self.netMap = self.getNetMap()
@@ -397,6 +403,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
             self.viaOffset = pcbnew.FromMM(1.3)
             self.viaNetId = 0 #TODO: Maybe a better init value here. Try to find "GND" maybe?
             self.isNetFilterChecked = 1 if self.highlightedNetId != -1 else 0
+            #if len(list(self.netMap.keys())) > 0:
+            #    self.viaNetId = list(self.netMap.keys())[self.mainDlg.lstViaNet.GetSelection()]   #maui
+        
             self.isLayerChecked = 0
             self.isIncludeDrawingChecked = 0
             self.isIncludeSelectionChecked = 1
