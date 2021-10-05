@@ -34,7 +34,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 2.6"
+        self.name = "Via Fence Generator\n version 2.7"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -478,9 +478,10 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                         trk_arc  = pcbnew.PCB_ARC
                     for item in self.boardObj.GetTracks():
                         #wx.LogMessage('type track: %s' % str(type(item)))
-                        if type(item) is trk_arc and item.IsSelected():
-                            wx.LogMessage('type track: %s' % str(type(item)))
-                            arcObjects += [item]
+                        if not (hasattr(pcbnew,'DRAWSEGMENT')):
+                            if type(item) is trk_arc and item.IsSelected():
+                                wx.LogMessage('type track: %s' % str(type(item)))
+                                arcObjects += [item]
                         if type(item) is trk_type and item.IsSelected():
                             lineObjects += [item]
                     
