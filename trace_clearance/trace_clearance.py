@@ -55,7 +55,7 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator\n version 1.3"
+        self.name = "Trace Clearance Generator\n version 1.4"
         self.category = ""
         self.description = (
             "Generate a copper pour keepout for a selected trace."
@@ -157,11 +157,12 @@ def set_keepouts(pcb, tracks, clearance):
             keepout.SetDoNotAllowTracks(False)
             keepout.SetLayerSet(layer)
         else:
-            keepout = pcbnew.ZONE
+            keepout = pcbnew.ZONE(pcb)
             pts = poly_points(track_start, track_end, track_width, clearance)
-            wx.LogMessage(str(pts))
+            # wx.LogMessage(str(pts))
             keepout.AddPolygon(pts)
-            keepout.SetIsKeepout(True)
+            #keepout.SetIsKeepout(True)
+            keepout.SetIsRuleArea(True)  # was SetIsKeepout
             keepout.SetDoNotAllowCopperPour(True)
             keepout.SetDoNotAllowVias(False)
             keepout.SetDoNotAllowTracks(False)
