@@ -1,11 +1,13 @@
 # RF-Tools for KiCAD
-**compatibility: KiCAD 5.1.x**
+
+**compatibility: KiCAD 5.1.x, 6.0.x**
 
 **<h2>Rounder tools for tracks</h2>**
 
 (to be copied on [KiCAD plugins dir](https://kicad-source-mirror.readthedocs.io/en/latest/Documentation/development/pcbnew-plugins/#typical-plugin-structure-ppi_pi_struct))
 
 * Rounder for tracks (*Action Plugin*)
+* Tapers for pads and tracks (*Action Plugin*)
 * Solder Mask Expander (*Action Plugin*)
 * Track Length (*Action Plugin*)
 * Via Fence Generator (*Action Plugin*) [pyclipper required]
@@ -14,6 +16,10 @@
 <br/>
 
 [![Tracks Rounder](resources/tracks-rounder-preview.png?raw=true "Tracks Rounder")](resources/tracks-rounder.gif?raw=true "Tracks Rounder")
+
+<br/>
+
+[![Tapers for pads and tracks](resources/pcbnew-taper-plugin.png?raw=true "Tapers for pads and tracks")](resources/pcbnew-taper-plugin.gif?raw=true "Tracks Rounder")
 
 <br/>
 
@@ -35,7 +41,6 @@ Generate a copper pour keepout for a selected trace.
 
 ![Trace Clearance Generator](resources/trace-clearance.png?raw=true "trace clearance")
 
-
 <br/>
 <hr>
 <h2>Footprint Wizards:</h2>
@@ -45,7 +50,6 @@ Generate a copper pour keepout for a selected trace.
 * microwave RF Arc footprint wizard
 * microwave RF Mitered footprint wizard
 * microwave RF Taper footprint wizard
-
 
 [![microwave RF Arc](resources/uwave-Arc-footprint-preview.png?raw=true "microwave RF Arc")](resources/uwave-Arc-footprint.gif?raw=true "microwave RF Arc")
 
@@ -76,6 +80,3 @@ Simply launch the fotprint wizard and select the uwave tool:
 <br>
 
 ![Via Teardrops Generator](resources/extras/teardrops-help.png?raw=true "teardrops")
-
-
-

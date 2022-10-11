@@ -554,7 +554,17 @@ def Round_Selection(pcb,distI,segments):
         if type(item) is track_item and item.IsSelected(): #item.GetNetname() == net_name:
             tracks.append(item)
     wxLogDebug(str(len(tracks)),debug)
-        
+    
+    # if len (tracks) == 0:
+    #     if  hasattr(pcbnew,'TRACK'):
+    #         track_item = pcbnew.DRAWSEGMENT
+    #     else:
+    #         track_item = pcbnew.PCB_TRACK
+    #     for item in pcb.GetTracks():
+    #         if type(item) is track_item and item.IsSelected(): #item.GetNetname() == net_name:
+    #             tracks.append(item)
+    #     wxLogDebug(str(len(tracks)),debug)        
+    
     if len (tracks) == 2:            
         #add all the possible intersections to a unique set, for iterating over later
         intersections = set();	
@@ -592,6 +602,7 @@ def Round_Selection(pcb,distI,segments):
                 endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
                 layer = tracks[0].GetLayer()
                 width = ToMM(tracks[0].GetWidth())
+                # if track_item != pcbnew.DRAWSEGMENT:
                 Nname = tracks[0].GetNet() #.GetNetname()
                 wxLogDebug("offset1 = "+str(ToUnits(startP)),debug) #+":"+str(ToUnits(endP)),debug)
                 wxLogDebug("offset2 = "+str(ToUnits(endP)),debug) #end_coord2.real+x))+":"+str(ToUnits(end_coord2.imag+y)))
@@ -615,6 +626,7 @@ def Round_Selection(pcb,distI,segments):
                     selectListTracks(pcb,tracks)
                 if (lenT1 < dist1) or (lenT2 < dist2):
                     wxLogDebug('Segments too short compared to selected distance {0:.3f} mm'.format(ToMM(distI)),True)
+                #elif track_item == pcbnew.DRAWSEGMENT: 
                 else:
                     #create_Track(pcb,first_trk_extNode,startP,layer,width,Nname) #B_Cu,0.2)
                     #if delete_before_connect:
