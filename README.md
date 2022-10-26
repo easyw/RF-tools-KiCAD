@@ -4,7 +4,7 @@
 
 **<h2>Rounder tools for tracks</h2>**
 
-(to be copied on [KiCAD plugins dir](https://kicad-source-mirror.readthedocs.io/en/latest/Documentation/development/pcbnew-plugins/#typical-plugin-structure-ppi_pi_struct))
+(to be copied on [KiCAD plugins dir](https://dev-docs.kicad.org/en/python/pcbnew/))
 
 * Rounder for tracks (*Action Plugin*)
 * Tapers for pads and tracks (*Action Plugin*)
@@ -13,31 +13,31 @@
 * Via Fence Generator (*Action Plugin*) [pyclipper required]
 * Trace Clearance Generator
 
-<br/>
+Rounder for tracks
 
 [![Tracks Rounder](resources/tracks-rounder-preview.png?raw=true "Tracks Rounder")](resources/tracks-rounder.gif?raw=true "Tracks Rounder")
 
-<br/>
+Tapers for pads and tracks
 
-[![Tapers for pads and tracks](resources/pcbnew-taper-plugin.png?raw=true "Tapers for pads and tracks")](resources/pcbnew-taper-plugin.gif?raw=true "Tracks Rounder")
+[![Tapers for pads and tracks](resources/pcbnew-taper-plugin.png?raw=true "Tapers for pads and tracks")](resources/pcbnew-taper-plugin.gif?raw=true "Tracks Taper")
 
-<br/>
+[![Tapers for pads and tracks](resources/pcbnew-taper-plugin-2.png?raw=true "Tapers for pads and tracks")](resources/pcbnew-taper-plugin-2.gif?raw=true "Tracks Taper")
+
+Solder Mask Expander
 
 [![Solder Mask Expander](resources/solder-mask-expander-preview.png?raw=true "Solder Mask Expander")](resources/solder-mask-expander.gif?raw=true "Solder Mask Expander")
 
-<br/>
+Track Length
 
 [![Track Lenght](resources/track-length-preview.png?raw=true "Track Lenght")](resources/track-length.png?raw=true "Track Lenght")
 
-<br/>
+Via Fence Generator
 
 [![Via Fence Generator](resources/via-fencing-preview.png?raw=true "Via Fence Generator")](resources/via-fencing.png?raw=true "Via Fence Generator")
 
 <br/>
 
-Trace Clearance Generator: 
-
-Generate a copper pour keepout for a selected trace. 
+Trace Clearance Generator: Generate a copper pour keepout for a selected trace. 
 
 ![Trace Clearance Generator](resources/trace-clearance.png?raw=true "trace clearance")
 
@@ -45,7 +45,7 @@ Generate a copper pour keepout for a selected trace.
 <hr>
 <h2>Footprint Wizards:</h2>
 
-(to be copied on [KiCAD plugins dir](https://kicad-source-mirror.readthedocs.io/en/latest/Documentation/development/pcbnew-plugins/#typical-plugin-structure-ppi_pi_struct))
+(to be copied on [KiCAD plugins dir](https://dev-docs.kicad.org/en/python/pcbnew/))
 
 * microwave RF Arc footprint wizard
 * microwave RF Mitered footprint wizard
