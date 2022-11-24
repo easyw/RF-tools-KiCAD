@@ -373,7 +373,8 @@ def getCircleCenterRadius(sp,ep,ip):
     Cx = h
     Cy = k
     radius = r
-    return wx.Point(Cx,Cy), radius
+    # wx.LogMessage('cx: ' + str(Cx) + ', cy: ' + str(Cy))
+    return wx.RealPoint(Cx,Cy), radius
 #
 def getAngleRadians(p1,p2):
     #return math.degrees(math.atan2((p1.y-p2.y),(p1.x-p2.x)))
@@ -383,4 +384,4 @@ def rotatePoint(r,sa,da,c):
     # sa, da in radians
     x = c.x - math.cos(sa+da) * r
     y = c.y - math.sin(sa+da) * r
-    return wx.Point(x,y)
+    return wx.RealPoint(x,y)
