@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -17,19 +17,68 @@ import wx.xrc
 class MainDialogBase ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Via Fence Generator", pos = wx.DefaultPosition, size = wx.Size( 503,567 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.RESIZE_BORDER )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Via Fence Generator", pos = wx.DefaultPosition, size = wx.Size( 665,608 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.RESIZE_BORDER )
 
-		import sys #maui
-		if sys.version_info[0] == 2:
-			self.SetSizeHintsSz( wx.Size( -1,-1 ), wx.Size( -1,-1 ) )
-		else:
-			self.SetSizeHints( wx.Size( -1,-1 ), wx.Size( -1,-1 ) )
+		self.SetSizeHints( wx.Size( -1,-1 ), wx.Size( -1,-1 ) )
 
 		mainSizer = wx.BoxSizer( wx.VERTICAL )
 
 		gbSizer4 = wx.GridBagSizer( 0, 0 )
 		gbSizer4.SetFlexibleDirection( wx.BOTH )
 		gbSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		bSizer231 = wx.BoxSizer( wx.VERTICAL )
+
+		sbSizer21 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Via Settings" ), wx.VERTICAL )
+
+		fgSizer41 = wx.FlexGridSizer( 8, 2, 0, 0 )
+		fgSizer41.AddGrowableCol( 1 )
+		fgSizer41.SetFlexibleDirection( wx.BOTH )
+		fgSizer41.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText111 = wx.StaticText( sbSizer21.GetStaticBox(), wx.ID_ANY, u"Frequency (MHz):", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText111.Wrap( -1 )
+
+		fgSizer41.Add( self.m_staticText111, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.txtFrequency = wx.TextCtrl( sbSizer21.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER|wx.TE_RIGHT )
+		fgSizer41.Add( self.txtFrequency, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.m_staticText211 = wx.StaticText( sbSizer21.GetStaticBox(), wx.ID_ANY, u"Lambda (mm):", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText211.Wrap( -1 )
+
+		fgSizer41.Add( self.m_staticText211, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.txtLamda = wx.TextCtrl( sbSizer21.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER|wx.TE_RIGHT )
+		fgSizer41.Add( self.txtLamda, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.m_staticText131 = wx.StaticText( sbSizer21.GetStaticBox(), wx.ID_ANY, u"Suggested pitch (mm):", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText131.Wrap( -1 )
+
+		fgSizer41.Add( self.m_staticText131, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.txtSuggestedSpacing = wx.StaticText( sbSizer21.GetStaticBox(), wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtSuggestedSpacing.Wrap( -1 )
+
+		fgSizer41.Add( self.txtSuggestedSpacing, 0, wx.ALL, 5 )
+
+		self.m_staticText29 = wx.StaticText( sbSizer21.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText29.Wrap( -1 )
+
+		fgSizer41.Add( self.m_staticText29, 0, wx.ALL, 5 )
+
+		self.chkUpdateViaSettings = wx.CheckBox( sbSizer21.GetStaticBox(), wx.ID_ANY, u"Automatically update vias settings", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chkUpdateViaSettings.SetValue(True)
+		fgSizer41.Add( self.chkUpdateViaSettings, 0, wx.ALL, 5 )
+
+
+		sbSizer21.Add( fgSizer41, 1, wx.EXPAND, 5 )
+
+
+		bSizer231.Add( sbSizer21, 1, wx.ALL|wx.EXPAND, 5 )
+
+
+		gbSizer4.Add( bSizer231, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
 		bSizer23 = wx.BoxSizer( wx.VERTICAL )
 
@@ -89,7 +138,7 @@ class MainDialogBase ( wx.Dialog ):
 		bSizer23.Add( sbSizer2, 1, wx.ALL|wx.EXPAND, 5 )
 
 
-		gbSizer4.Add( bSizer23, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+		gbSizer4.Add( bSizer23, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
 		bSizer21 = wx.BoxSizer( wx.VERTICAL )
 
@@ -100,7 +149,7 @@ class MainDialogBase ( wx.Dialog ):
 		bSizer21.Add( self.bmpViafence, 1, wx.EXPAND, 5 )
 
 
-		gbSizer4.Add( bSizer21, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND|wx.ALL, 5 )
+		gbSizer4.Add( bSizer21, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND|wx.ALL, 5 )
 
 		sbSizer411 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Input Tracks" ), wx.VERTICAL )
 
@@ -152,7 +201,7 @@ class MainDialogBase ( wx.Dialog ):
 		sbSizer411.Add( gSizer4, 0, wx.EXPAND, 5 )
 
 
-		gbSizer4.Add( sbSizer411, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.ALL|wx.EXPAND, 5 )
+		gbSizer4.Add( sbSizer411, wx.GBPosition( 2, 0 ), wx.GBSpan( 1, 1 ), wx.ALL|wx.EXPAND, 5 )
 
 		sbSizer4 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Output VIAs" ), wx.VERTICAL )
 
@@ -171,7 +220,7 @@ class MainDialogBase ( wx.Dialog ):
 		sbSizer4.Add( gSizer2, 1, wx.EXPAND, 5 )
 
 
-		gbSizer4.Add( sbSizer4, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND|wx.ALL, 5 )
+		gbSizer4.Add( sbSizer4, wx.GBPosition( 2, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND|wx.ALL, 5 )
 
 
 		gbSizer4.AddGrowableCol( 0 )
@@ -206,6 +255,8 @@ class MainDialogBase ( wx.Dialog ):
 
 		# Connect Events
 		self.Bind( wx.EVT_INIT_DIALOG, self.OnInitDialog )
+		self.txtFrequency.Bind( wx.EVT_TEXT, self.OnFrequencyChanged )
+		self.txtLamda.Bind( wx.EVT_TEXT, self.OnLambdaChanged )
 		self.chkNetFilter.Bind( wx.EVT_CHECKBOX, self.OnNetFilterCheckBox )
 		self.chkLayer.Bind( wx.EVT_CHECKBOX, self.OnLayerCheckBox )
 
@@ -213,8 +264,14 @@ class MainDialogBase ( wx.Dialog ):
 		pass
 
 
-	# Virtual event handlers, overide them in your derived class
+	# Virtual event handlers, override them in your derived class
 	def OnInitDialog( self, event ):
+		event.Skip()
+
+	def OnFrequencyChanged( self, event ):
+		event.Skip()
+
+	def OnLambdaChanged( self, event ):
 		event.Skip()
 
 	def OnNetFilterCheckBox( self, event ):
