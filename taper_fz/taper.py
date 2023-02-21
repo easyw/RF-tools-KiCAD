@@ -10,7 +10,7 @@
 import os
 import sys
 from math import cos, acos, sin, asin, tan, atan2, sqrt, pi, degrees, radians, copysign
-from pcbnew import ToMM, FromMM, wxPoint, GetBoard, ZONE_SETTINGS
+from pcbnew import ToMM, FromMM, wxPoint, GetBoard, ZONE_SETTINGS, VECTOR2I
 from pcbnew import ZONE_FILLER
 import pcbnew
 import wx
@@ -56,7 +56,7 @@ def __Zone(board, points, track):
     z.SetMinThickness(25400)  # The minimum
     z.SetPadConnection(2)  # 2 -> solid
     z.SetIsFilled(True)
-    z.SetPriority(MAGIC_TAPER_ZONE_ID)  # MAGIC_TEARDROP_ZONE_ID)
+    z.SetAssignedPriority(MAGIC_TAPER_ZONE_ID)  # MAGIC_TEARDROP_ZONE_ID)
     ol = z.Outline()
     ol.NewOutline()
 
@@ -234,7 +234,7 @@ def __ComputePoints(track, pad, segs):
     bdelta = FromMM(0.01)
     backoff=0
     while backoff<radius:
-        np = start + wxPoint( vecT[0]*backoff, vecT[1]*backoff )
+        np = start + VECTOR2I(wxPoint( vecT[0]*backoff, vecT[1]*backoff ))
         if __PointDistance(np, pad.GetPosition()) >= radius: # via[0]) >= radius:
             break
         backoff += bdelta
@@ -254,14 +254,14 @@ def __ComputePoints(track, pad, segs):
         vpercent = ToMM(vpercent*n/targetLength + minVpercent*(1-n/targetLength))
     
     # find point on the track, sharp end of the teardrop
-    pointB = start + wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
-    pointA = start + wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
+    pointB = start + VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
+    pointA = start + VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
     #pointB = wxPoint(int(start.x-0.15*radius),int(start.y-0.15*radius)) + wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
     # Introduce a last point in order to cover the via centre.
     # If not, the zone won't be filled or not connected
     internal_delta_multiplier = 0.15
     idm = internal_delta_multiplier
-    pointF = start + wxPoint(int(vecT[0]*+idm*w), int(vecT[1]*+idm*w))
+    pointF = start + VECTOR2I(wxPoint(int(vecT[0]*+idm*w), int(vecT[1]*+idm*w)))
 
     # In some cases of very short, eccentric tracks the points can end up
     # inside the teardrop. If this happens just cancel adding it
@@ -305,8 +305,8 @@ def __ComputePoints(track, pad, segs):
     vecC = [vec[0]*cos(dC)+vec[1]*sin(dC), -vec[0]*sin(dC)+vec[1]*cos(dC)]
     vecE = [vec[0]*cos(dE)+vec[1]*sin(dE), -vec[0]*sin(dE)+vec[1]*cos(dE)]
 
-    pointC = pad.GetPosition() + wxPoint(int(vecC[0] * nsx/2), int(vecC[1] * nsx/2)) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
-    pointE = pad.GetPosition() + wxPoint(int(vecE[0] * nsx/2), int(vecE[1] * nsx/2)) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
+    pointC = pad.GetPosition() + VECTOR2I(wxPoint(int(vecC[0] * nsx/2), int(vecC[1] * nsx/2))) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
+    pointE = pad.GetPosition() + VECTOR2I(wxPoint(int(vecE[0] * nsx/2), int(vecE[1] * nsx/2))) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
     # pointC = via[0] + wxPoint(int(vecC[0] * radius), int(vecC[1] * radius))
     # pointE = via[0] + wxPoint(int(vecE[0] * radius), int(vecE[1] * radius))
     #pointC2 = pointC + wxPoint(int(cos(padAngle)*vec[0]*invx*nsx*0.5), int(-sin(padAngle)*vec[1]*invy*nsx*0.5))
@@ -315,13 +315,13 @@ def __ComputePoints(track, pad, segs):
     signx = copysign (1, vec[0])
     signy = copysign (1, vec[1])
     
-    shiftP = wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
+    shiftP = VECTOR2I(wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25)))
     pointC2 = pointC + shiftP #wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
     pointE2 = pointE + shiftP #wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
 
     # Introduce a last point in order to cover the via centre.
     # If not, the zone won't be filled
-    shiftD= wxPoint(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius))
+    shiftD= VECTOR2I(wxPoint(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius)))
     pointD = pad.GetPosition() + shiftD
     # pointD = via[0] + wxPoint(int(vec[0]*-0.5*radius), int(vec[1]*-0.5*radius))
 
@@ -589,10 +589,10 @@ def SetTaper_Zone(pcb=None):
         # it will be used a base vector pointing in the track direction
         vecT = __NormalizeVector(end - start)
         # find point on the track, sharp end of the teardrop
-        pointB = start + wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
-        pointA = start + wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
-        pointD = start - wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
-        pointC = start - wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
+        pointB = start + VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
+        pointA = start + VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
+        pointD = start - VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
+        pointC = start - VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
         points = [pointA,pointB,pointC,pointD]
         pcb.Add(__Zone(pcb, points, track))       
         RebuildAllZones(pcb)
@@ -637,7 +637,7 @@ def __GetAllTapers(board):
     """Just retrieves all teardrops of the current board classified by net"""
     tapers_zones = {}
     for zone in [board.GetArea(i) for i in range(board.GetAreaCount())]:
-        if zone.GetPriority() == MAGIC_TAPER_ZONE_ID:
+        if zone.GetAssignedPriority() == MAGIC_TAPER_ZONE_ID:
             netname = zone.GetNetname()
             if netname not in tapers_zones.keys():
                 tapers_zones[netname] = []
