@@ -157,8 +157,11 @@ class Solder_Expander(pcbnew.ActionPlugin):
             aParameters.m_checkBoxD.Hide()
             aParameters.m_staticText10111.Hide()
         modal_result = aParameters.ShowModal()
-        clearance = FromMM(self.CheckInput(aParameters.m_clearanceMM.GetValue(), "extra clearance from track width"))
-        
+        clearance = self.CheckInput(aParameters.m_clearanceMM.GetValue(), "extra clearance from track width")
+        if clearance is None:
+            return
+        clearance = FromMM(clearance)
+
         if not(hasattr(pcbnew,'DRAWSEGMENT')):
         #if hasattr(pcb, 'm_Uuid'):
             aParameters.m_buttonDelete.Disable()
