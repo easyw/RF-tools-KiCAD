@@ -55,7 +55,7 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator\n version 1.4"
+        self.name = "Trace Clearance Generator\n version 1.5"
         self.category = ""
         self.description = (
             "Generate a copper pour keepout for a selected trace."
@@ -187,8 +187,10 @@ def poly_points(track_start, track_end, track_width, clearance):
 
     delta_x = delta * -dy_norm
     delta_y = delta * dx_norm
-    pt_delta = pcbnew.VECTOR2I(pcbnew.wxPoint(delta_x, delta_y))
-
+    if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+        pt_delta = pcbnew.wxPoint(delta_x, delta_y)
+    else: #kv7
+        pt_delta = pcbnew.VECTOR2I(pcbnew.wxPoint(delta_x, delta_y))
     pts = []
     pts.append(track_start + pt_delta)
     for pt in semicircle_points(track_start, delta, theta, True):
@@ -198,7 +200,10 @@ def poly_points(track_start, track_end, track_width, clearance):
     for pt in semicircle_points(track_end, delta, theta, False):
         pts.append(pt)
     pts.append(track_end + pt_delta)
-    return pcbnew.VECTOR_VECTOR2I(pts)
+    if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+        return pcbnew.wxPoint_Vector(pts)
+    else: #kv7
+        return pcbnew.VECTOR_VECTOR2I(pts)
 
 
 def semicircle_points(circle_center, radius, angle_norm, is_start=True):
@@ -223,13 +228,21 @@ def semicircle_points(circle_center, radius, angle_norm, is_start=True):
         # angles = np.add(angles, np.pi)
         angles.append(math.pi)
     pts = []
-    for ang in angles:
-        # pts.append(
-        #     circle_center
-        #     + pcbnew.wxPoint(radius * np.cos(ang), radius * np.sin(ang))
-        # )
-        pts.append(
-            circle_center
-            + pcbnew.VECTOR2I(pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang)))
-        )
-    return pcbnew.VECTOR_VECTOR2I(pts)
+    if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+        for ang in angles:
+            # pts.append(
+            #     circle_center
+            #     + pcbnew.wxPoint(radius * np.cos(ang), radius * np.sin(ang))
+            # )
+            pts.append(
+                circle_center
+                + pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang))
+            )
+        return pcbnew.wxPoint_Vector(pts)
+    else: # kv7
+        for ang in angles:
+            pts.append(
+                circle_center
+                + pcbnew.VECTOR2I(pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang)))
+            )
+        return pcbnew.VECTOR_VECTOR2I(pts)    
