@@ -104,7 +104,7 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\n version 2.3"
+        self.name = "Solder Mask Expander for Tracks\n version 2.4"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -157,11 +157,13 @@ class Solder_Expander(pcbnew.ActionPlugin):
             aParameters.m_checkBoxD.Hide()
             aParameters.m_staticText10111.Hide()
         modal_result = aParameters.ShowModal()
-        clearance = self.CheckInput(aParameters.m_clearanceMM.GetValue(), "extra clearance from track width")
-        if clearance is None:
-            return
-        clearance = FromMM(clearance)
-
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            clearance = FromMM(self.CheckInput(aParameters.m_clearanceMM.GetValue(), "extra clearance from track width"))
+        else: # kv7
+            clearance = self.CheckInput(aParameters.m_clearanceMM.GetValue(), "extra clearance from track width")
+            if clearance is None:
+                return
+            clearance = FromMM(clearance)
         if not(hasattr(pcbnew,'DRAWSEGMENT')):
         #if hasattr(pcb, 'm_Uuid'):
             aParameters.m_buttonDelete.Disable()
