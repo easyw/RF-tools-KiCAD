@@ -38,6 +38,7 @@
 import sys
 import os
 from pcbnew import *
+from builtins import abs
 import wx
 import pcbnew
 import math
@@ -218,8 +219,8 @@ def create_Track(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None):
     else:
         new_shape = PCB_SHAPE() 
         new_line = PCB_TRACK(new_shape)
-    new_line.SetStart(p1)
-    new_line.SetEnd(p2)
+    new_line.SetStart(VECTOR2I(p1))
+    new_line.SetEnd(VECTOR2I(p2))
     if w is None:
         new_line.SetWidth(FromUnits(1.5)) #FromUnits(int(mask_width)))
     else:
@@ -266,9 +267,9 @@ def create_Arc(pcb,p1,p2,mp,lyr=None,w=None,Nn=None,Ts=None):
         #new_arc = PCB_ARC(new_shape)
         new_trk = PCB_TRACK(pcb) 
         new_arc = PCB_ARC(new_trk)
-    new_arc.SetStart(p1)
-    new_arc.SetEnd(p2)
-    new_arc.SetMid(mp)
+    new_arc.SetStart(VECTOR2I(p1))
+    new_arc.SetEnd(VECTOR2I(p2))
+    new_arc.SetMid(VECTOR2I(mp))
     if w is None:
         new_arc.SetWidth(FromUnits(1.5)) #FromUnits(int(mask_width)))
     else:
@@ -297,8 +298,8 @@ def create_Draw(pcb,p1,p2,lyr=None,w=None):
     else:
         new_line = PCB_SHAPE()
     #new_line = pcbnew.TRACK(pcb)
-    new_line.SetStart(p1)
-    new_line.SetEnd(p2)
+    new_line.SetStart(VECTOR2I(p1))
+    new_line.SetEnd(VECTOR2I(p2))
     if w is None:
         new_line.SetWidth(FromUnits(1.5)) #FromUnits(int(mask_width)))
     else:
@@ -806,19 +807,19 @@ def Connect_Segments(pcb):
             wxLogDebug('dp1,pi)'+str(distance(wxPoint(x1,y1),pi)),debug2)
             wxLogDebug('dp3,pi)'+str(distance(wxPoint(x3,y3),pi)),debug2)
             if distance(wxPoint(x1,y1),pi) > distance(wxPoint(x3,y3),pi):
-                tracks[0].SetStart(wxPoint(x1,y1))
-                tracks[0].SetEnd(pi)
+                tracks[0].SetStart(VECTOR2I(wxPoint(x1,y1)))
+                tracks[0].SetEnd(VECTOR2I(pi))
             else:
-                tracks[0].SetStart(wxPoint(x3,y3))
-                tracks[0].SetEnd(pi)
+                tracks[0].SetStart(VECTOR2I(wxPoint(x3,y3)))
+                tracks[0].SetEnd(VECTOR2I(pi))
             wxLogDebug('dp2,pi)'+str(distance(wxPoint(x2,y2),pi)),debug2)
             wxLogDebug('dp4,pi)'+str(distance(wxPoint(x4,y4),pi)),debug2)
             if distance(wxPoint(x2,y2),pi) > distance(wxPoint(x4,y4),pi):
-                tracks[1].SetStart(wxPoint(x2,y2))
-                tracks[1].SetEnd(pi)
+                tracks[1].SetStart(VECTOR2I(wxPoint(x2,y2)))
+                tracks[1].SetEnd(VECTOR2I(pi))
             else:
-                tracks[1].SetStart(wxPoint(x4,y4))
-                tracks[1].SetEnd(pi)
+                tracks[1].SetStart(VECTOR2I(wxPoint(x4,y4)))
+                tracks[1].SetEnd(VECTOR2I(pi))
             pcbnew.Refresh()
     else:
         wxLogDebug(u'\u2718 you must select two tracks only',not debug)

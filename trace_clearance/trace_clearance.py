@@ -187,7 +187,7 @@ def poly_points(track_start, track_end, track_width, clearance):
 
     delta_x = delta * -dy_norm
     delta_y = delta * dx_norm
-    pt_delta = pcbnew.wxPoint(delta_x, delta_y)
+    pt_delta = pcbnew.VECTOR2I(pcbnew.wxPoint(delta_x, delta_y))
 
     pts = []
     pts.append(track_start + pt_delta)
@@ -198,7 +198,7 @@ def poly_points(track_start, track_end, track_width, clearance):
     for pt in semicircle_points(track_end, delta, theta, False):
         pts.append(pt)
     pts.append(track_end + pt_delta)
-    return pcbnew.wxPoint_Vector(pts)
+    return pcbnew.VECTOR_VECTOR2I(pts)
 
 
 def semicircle_points(circle_center, radius, angle_norm, is_start=True):
@@ -230,6 +230,6 @@ def semicircle_points(circle_center, radius, angle_norm, is_start=True):
         # )
         pts.append(
             circle_center
-            + pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang))
+            + pcbnew.VECTOR2I(pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang)))
         )
-    return pcbnew.wxPoint_Vector(pts)
+    return pcbnew.VECTOR_VECTOR2I(pts)
