@@ -225,7 +225,7 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
             module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
         # module.SetAttributes(pcbnew.MOD_VIRTUAL)
         # module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
-        __version__ = 1.5
+        __version__ = 1.6
         self.buildmessages += ("version: {:.1f}".format(__version__))
 
 uwTaper_wizard().register()

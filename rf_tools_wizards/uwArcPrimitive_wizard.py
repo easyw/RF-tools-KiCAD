@@ -93,10 +93,16 @@ class uwArcPrimitive_wizard(FootprintWizardBase.FootprintWizard):
         else:
             pad.SetLayerSet( LSET(layer) )
         
-        if not ln:
-            pad.AddPrimitive(pcbnew.wxPoint(0,rad), pcbnew.wxPoint(0,0), int(angle_D*10), (size[0]))
-        else:
-            pad.AddPrimitive(pcbnew.wxPoint(0,0), pcbnew.wxPoint(rad,0), (size[0]))
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            if not ln:
+                pad.AddPrimitive(pcbnew.wxPoint(0,rad), pcbnew.wxPoint(0,0), int(angle_D*10), (size[0]))
+            else:
+                pad.AddPrimitive(pcbnew.wxPoint(0,0), pcbnew.wxPoint(rad,0), (size[0]))
+        else: # kv7
+            if not ln:
+                pad.AddPrimitive(pcbnew.VECTOR2I(wxPoint(0,rad)), pcbnew.VECTOR2I(wxPoint(0,0)), pcbnew.EDA_ANGLE(int(angle_D*10),pcbnew.DEGREES_T), (size[0]))
+            else:
+                pad.AddPrimitive(pcbnew.VECTOR2I(wxPoint(0,0)), pcbnew.VECTOR2I(wxPoint(rad,0)), (size[0]))            
         return pad
 
     def smdPad(self,module,size,pos,name,ptype,angle_D,layer,solder_clearance,offs=None):
@@ -139,37 +145,68 @@ class uwArcPrimitive_wizard(FootprintWizardBase.FootprintWizard):
         if angle < 0:
             sign = -1.
         
-        pos = pcbnew.wxPoint(0,0)
-        offset1 = pcbnew.wxPoint(-sign*width/2,0)
-        offset2 = pcbnew.wxPoint(0,0)
         module = self.module
-        size_pad = pcbnew.wxSize(width, width)
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            pos = pcbnew.wxPoint(0,0)
+            offset1 = pcbnew.wxPoint(-sign*width/2,0)
+            offset2 = pcbnew.wxPoint(0,0)
+            size_pad = pcbnew.wxSize(width, width)
+            module.Add(self.smdCustomArcPad(module, size_pad, pcbnew.wxPoint(0,0), radius, "1", (angle_deg), F_Cu, line, sold_clear))
+            size_pad = pcbnew.wxSize(width, width)
+        else: # kv7
+            pos = pcbnew.VECTOR2I(wxPoint(0,0))
+            offset1 = pcbnew.VECTOR2I(wxPoint(-sign*width/2,0))
+            offset2 = pcbnew.VECTOR2I(wxPoint(0,0))
+            size_pad = pcbnew.VECTOR2I(VECTOR2I(width, width))
+            module.Add(self.smdCustomArcPad(module, size_pad, pcbnew.VECTOR2I(wxPoint(0,0)), radius, "1", (angle_deg), F_Cu, line, sold_clear))
+            size_pad = pcbnew.VECTOR2I(width, width)
         #size_pad = pcbnew.wxSize(width/5, width/5)
-        module.Add(self.smdCustomArcPad(module, size_pad, pcbnew.wxPoint(0,0), radius, "1", (angle_deg), F_Cu, line, sold_clear))
-        size_pad = pcbnew.wxSize(width, width)
         end_coord = (radius) * cmath.exp(math.radians(angle_deg-90)*1j)
         if pads['square_end'] or angle_deg == 0 or radius == 0:
-            if not line:
-                ## NB pads must be the same size and have the same center
-                module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset1))
-            else:
-                module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
-            if not line:
-                #pos = pcbnew.wxPoint(end_coord.real+(sign*width/2)*math.cos(angle),end_coord.imag+(sign*width/2)*math.sin(angle)+radius)
-                pos = pcbnew.wxPoint(end_coord.real,end_coord.imag+radius)
-                module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,90-angle_deg,F_Cu,sold_clear,wxPoint(0,(sign*width/2))))
-                #*math.sin(math.pi/2-angle),(sign*width/2)*math.cos(math.pi/2-angle))))
-            else:
-                pos = pcbnew.wxPoint(radius,0) #+width/2,0)
-                module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
+            if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+                if not line:
+                    ## NB pads must be the same size and have the same center
+                    module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset1))
+                else:
+                    module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
+                if not line:
+                    #pos = pcbnew.wxPoint(end_coord.real+(sign*width/2)*math.cos(angle),end_coord.imag+(sign*width/2)*math.sin(angle)+radius)
+                    pos = pcbnew.wxPoint(end_coord.real,end_coord.imag+radius)
+                    module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,90-angle_deg,F_Cu,sold_clear,wxPoint(0,(sign*width/2))))
+                    #*math.sin(math.pi/2-angle),(sign*width/2)*math.cos(math.pi/2-angle))))
+                else:
+                    pos = pcbnew.wxPoint(radius,0) #+width/2,0)
+                    module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
+            else: # kv7
+                if not line:
+                    ## NB pads must be the same size and have the same center
+                    module.Add(self.smdPad(module, size_pad, pcbnew.VECTOR2I(wxPoint(0,0)), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset1))
+                else:
+                    module.Add(self.smdPad(module, size_pad, pcbnew.VECTOR2I(wxPoint(0,0)), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
+                if not line:
+                    #pos = pcbnew.wxPoint(end_coord.real+(sign*width/2)*math.cos(angle),end_coord.imag+(sign*width/2)*math.sin(angle)+radius)
+                    pos = pcbnew.VECTOR2I(wxPoint(end_coord.real,end_coord.imag+radius))
+                    module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,90-angle_deg,F_Cu,sold_clear,pcbnew.VECTOR2I(wxPoint(0,(sign*width/2)))))
+                    #*math.sin(math.pi/2-angle),(sign*width/2)*math.cos(math.pi/2-angle))))
+                else:
+                    pos = pcbnew.VECTOR2I(wxPoint(radius,0)) #+width/2,0)
+                    module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear))
         else:
             ## NB pads must be the same size and have the same center
             #size_pad = pcbnew.wxSize(width/5, width/5)
-            size_pad = pcbnew.wxSize(width, width)
-            if not line:
-                pos = pcbnew.wxPoint(end_coord.real,end_coord.imag+radius)
-            else:
-                pos = pcbnew.wxPoint(radius,0)
+            if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+                size_pad = pcbnew.wxSize(width, width)
+                if not line:
+                    pos = pcbnew.wxPoint(end_coord.real,end_coord.imag+radius)
+                else:
+                    pos = pcbnew.wxPoint(radius,0)
+            else: # kv7
+                size_pad = pcbnew.VECTOR2I(width, width)
+                if not line:
+                    pos = pcbnew.VECTOR2I(wxPoint(end_coord.real,end_coord.imag+radius))
+                else:
+                    pos = pcbnew.VECTOR2I(wxPoint(radius,0))
+            
             module.Add(self.smdPad(module, size_pad, pos, "1", PAD_SHAPE_CIRCLE,0,F_Cu,sold_clear))
 
         # Text size
@@ -187,7 +224,7 @@ class uwArcPrimitive_wizard(FootprintWizardBase.FootprintWizard):
             module.SetAttributes(pcbnew.MOD_VIRTUAL)
         else:
             module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
-        __version__ = 1.7
+        __version__ = 1.8
         self.buildmessages += ("version: {:.1f}".format(__version__))
 
 uwArcPrimitive_wizard().register()
