@@ -195,7 +195,7 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
                 pts.append(newEle)
             points = pts
             vpoints = VECTOR_VECTOR2I(points)
-        vpoints = points
+            #vpoints = points
         # self.Polygon(points, F_Cu)
 
         #module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset1))

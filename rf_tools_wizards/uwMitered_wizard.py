@@ -216,13 +216,17 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         #text_size = self.GetTextSize()  # IPC nominal
         
         textposy = width + FromMM(1)
-        size_text = wxSize( FromMM( 0.6), FromMM( 0.5) )
         
         module.name = "'uwm_{0:.2f}_{1:0.2f}_{2:.0f}'".format(ToMM(width),ToMM(height),angle_deg)
         
         #module.SetReference("uwm_{0:.2f}_{1:0.2f}_{2:.0f}".format(ToMM(width),ToMM(height),angle_deg))
         module.SetReference("uwM***")           # give it a default value
-        module.Reference().SetPos0(wxPoint(0, textposy))
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            module.Reference().SetPos0(wxPoint(0, textposy))
+            size_text = wxSize( FromMM( 0.6), FromMM( 0.5) )
+        else: # kv7
+            module.Reference().SetPos0(pcbnew.VECTOR2I(wxPoint(0, textposy)))
+            size_text = pcbnew.VECTOR2I( FromMM( 0.6), FromMM( 0.5) )
         module.Reference().SetPosition(module.Reference().GetPos0())
         module.Reference().SetTextSize( size_text )
         if hasattr(module.Reference(), 'SetThickness'):
@@ -234,7 +238,10 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         textposy = textposy + FromMM(1)
         #module.SetValue("Val***")           # give it a default value
         module.SetValue("uwM_{0:.2f}_{1:0.2f}_{2:.0f}".format(ToMM(width),ToMM(height),angle_deg))
-        module.Value().SetPos0( wxPoint(0, textposy) )
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            module.Value().SetPos0( wxPoint(0, textposy) )
+        else: # kv7
+            module.Value().SetPos0( pcbnew.VECTOR2I(wxPoint(0, textposy)) )
         module.Value().SetPosition(module.Value().GetPos0())
         module.Value().SetTextSize( size_text )
         module.Value().SetVisible(False) #0)
@@ -301,35 +308,61 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         #Last two points can be equal
         if points[-2] == points[-1]:
             points = points[:-1]
-
-        points = [wxPoint(*point) for point in points]
-        vpoints = wxPoint_Vector(points)
-        #self.Polygon(points, F_Cu)
-
         #Create pads
         pad_l = width/2 #10 allowing big track to join the fp
-        size_pad = wxSize(width,pad_l)
+
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            points = [wxPoint(*point) for point in points]
+            vpoints = wxPoint_Vector(points)
+            size_pad = wxSize(width,pad_l)
+            #module.Add(self.smdRectPad(module, size_pad, wxPoint(width/2,-pad_l/2), "1", 0))
+            layer = F_Cu; # sold_clear = 0
+            module.Add(self.smdCustomPolyPad(module, size_pad, wxPoint(width/2,-pad_l/2), "1", vpoints, layer,sold_clear))
+            # smdCustomPolyPad(self, module, size, pos, name, points, layer, solder_clearance):
+            size_pad = wxSize(pad_l,width)
+    
+            #Halfway between points 4 and 5
+            posx = ((w+x34) + (w+x34-x45))/2
+            posy = ((a+y34) + (a+y34+y45))/2
+    
+            #Position pad so that pad edge touches polygon edge
+            posx += (pad_l/2)*math.sin(angle)
+            posy += (pad_l/2)*math.cos(angle)+w/4
+            size_pad = wxSize(pad_l, width)
+            #solder clearance added only to polygon
+            module.Add(self.smdRectPad(module, size_pad, wxPoint(posx,posy), "1", (angle_deg-90)*10,layer,0.0))
+            # moving anchor to center of first pad
+            module.MoveAnchorPosition(wxPoint(-width/2,pad_l/2))
+            # set SMD attribute
+            # set SMD attribute
+        else: # kv7
+            pts=[]
+            for point in points:
+                newEle=VECTOR2I(wxPoint(point[0],point[1]))
+                pts.append(newEle)
+            points = pts
+            vpoints = VECTOR_VECTOR2I(points)
+            size_pad = pcbnew.VECTOR2I(wxSize(width,pad_l))
+            layer = F_Cu; # sold_clear = 0
+            module.Add(self.smdCustomPolyPad(module, size_pad, VECTOR2I(wxPoint(width/2,-pad_l/2)), "1", vpoints, layer,sold_clear))
+            size_pad = pcbnew.VECTOR2I(wxSize(pad_l, width))
+    
+            posx = ((w+x34) + (w+x34-x45))/2
+            posy = ((a+y34) + (a+y34+y45))/2
+    
+            #Position pad so that pad edge touches polygon edge
+            posx += (pad_l/2)*math.sin(angle)
+            posy += (pad_l/2)*math.cos(angle)+w/4
+            size_pad = pcbnew.VECTOR2I(wxSize(pad_l, width))
+            #solder clearance added only to polygon
+            module.Add(self.smdRectPad(module, size_pad, VECTOR2I(wxPoint(posx,posy)), "1",pcbnew.EDA_ANGLE((angle_deg-90)*10,pcbnew.DEGREES_T) ,layer,0.0))
+            # moving anchor to center of first pad
+            module.MoveAnchorPosition(VECTOR2I(wxPoint(-width/2,pad_l/2)))
+            # set SMD attribute
+            # set SMD attribute
+            #self.Polygon(points, F_Cu)
+
         
-        #module.Add(self.smdRectPad(module, size_pad, wxPoint(width/2,-pad_l/2), "1", 0))
-        layer = F_Cu; # sold_clear = 0
-        module.Add(self.smdCustomPolyPad(module, size_pad, wxPoint(width/2,-pad_l/2), "1", vpoints, layer,sold_clear))
-        # smdCustomPolyPad(self, module, size, pos, name, points, layer, solder_clearance):
-        size_pad = wxSize(pad_l,width)
-
-        #Halfway between points 4 and 5
-        posx = ((w+x34) + (w+x34-x45))/2
-        posy = ((a+y34) + (a+y34+y45))/2
-
-        #Position pad so that pad edge touches polygon edge
-        posx += (pad_l/2)*math.sin(angle)
-        posy += (pad_l/2)*math.cos(angle)+w/4
-        size_pad = wxSize(pad_l, width)
-        #solder clearance added only to polygon
-        module.Add(self.smdRectPad(module, size_pad, wxPoint(posx,posy), "1", (angle_deg-90)*10,layer,0.0))
-        # moving anchor to center of first pad
-        module.MoveAnchorPosition(wxPoint(-width/2,pad_l/2))
-        # set SMD attribute
-        # set SMD attribute
         if hasattr(pcbnew, 'MOD_VIRTUAL'):
             module.SetAttributes(pcbnew.MOD_VIRTUAL)
         else:
@@ -341,7 +374,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         self.buildmessages += ("PCB Height: {0:.4f}mm\n".format(ToMM(height)))
         self.buildmessages += ("Angle: {:.1f}deg\n\n".format(angle_deg))
         self.buildmessages += ("Cut: {0:.2f}%\n".format(cut_pc*100))
-        __version__ = 1.6
+        __version__ = 1.7
         self.buildmessages += ("version: {:.1f}".format(__version__))
         
 
