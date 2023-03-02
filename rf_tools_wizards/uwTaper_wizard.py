@@ -88,10 +88,13 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
         else:
             pad.SetLayerSet( LSET(layer) )
         
-        if hasattr(pcbnew, 'D_PAD'):
+        if hasattr(pcbnew, 'D_PAD'): # kv5
             pad.AddPrimitive(vpoints,0) # (size[0]))
-        else:
-            pad.AddPrimitivePoly(vpoints, 0, True) # (size[0]))
+        else: #kv6-kv7
+            if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+                pad.AddPrimitivePoly(vpoints, 0, True) # (size[0]))
+            else: # kv7
+                pad.AddPrimitivePoly(pcbnew.VECTOR_VECTOR2I(vpoints), 0, True) # (size[0]))
         return pad
 
     def smdPad(self,module,size,pos,name,ptype,angle_D,layer,solder_clearance,offs=None):
@@ -148,11 +151,6 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
         sold_clear = pads['solder_clearance']
         w1=width1;w2=width2;
         h1=height1;h2=height2;
-        
-        pos = pcbnew.wxPoint(0,0)
-        offset1 = pcbnew.wxPoint(0,0)
-        #offset2 = pcbnew.wxPoint(length+w1/2,0)
-        offset2 = pcbnew.wxPoint(0,0)
         module = self.module
         #  1   2  3  4
         #         +--+
@@ -178,17 +176,40 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
         #Last two points can be equal
         if points[-2] == points[-1]:
             points = points[:-1]
-        points = [wxPoint(*point) for point in points]
-        vpoints = wxPoint_Vector(points)
+        
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            pos = pcbnew.wxPoint(0,0)
+            offset1 = pcbnew.wxPoint(0,0)
+            #offset2 = pcbnew.wxPoint(length+w1/2,0)
+            offset2 = pcbnew.wxPoint(0,0)
+            points = [wxPoint(*point) for point in points]
+            vpoints = wxPoint_Vector(points)
+        else: # kv7
+            pos = pcbnew.VECTOR2I(wxPoint( 0,0 ))
+            offset1 = pcbnew.VECTOR2I(wxPoint( 0,0 ))
+            offset2 = pcbnew.VECTOR2I(wxPoint( 0,0 ))
+            #points = [pcbnew.VECTOR2I(*wxPoint(point)) for point in points]
+            pts=[]
+            for point in points:
+                newEle=VECTOR2I(wxPoint(point[0],point[1]))
+                pts.append(newEle)
+            points = pts
+            vpoints = VECTOR_VECTOR2I(points)
+        vpoints = points
         # self.Polygon(points, F_Cu)
 
-        size_pad = pcbnew.wxSize(width1, height1)
         #module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset1))
-        module.Add(self.smdCustomPolyPad(module, size_pad, wxPoint(0,0), "1", vpoints,F_Cu,sold_clear))
-        
-        size_pad = pcbnew.wxSize(width2, height2)
         #solder clearance added only to polygon
-        module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(length+w1/2,0-p2vof), "1", PAD_SHAPE_RECT,0,F_Cu,0.0,offset2))
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            size_pad = pcbnew.wxSize(width1, height1)
+            module.Add(self.smdCustomPolyPad(module, size_pad, wxPoint(0,0), "1", vpoints,F_Cu,sold_clear))
+            size_pad = pcbnew.wxSize(width2, height2)
+            module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(length+w1/2,0-p2vof), "1", PAD_SHAPE_RECT,0,F_Cu,0.0,offset2))
+        else: # kv7
+            size_pad = pcbnew.VECTOR2I(width1, height1)
+            module.Add(self.smdCustomPolyPad(module, size_pad, pcbnew.VECTOR2I(wxPoint(0,0)), "1", vpoints,F_Cu,sold_clear))
+            size_pad = pcbnew.VECTOR2I(width2, height2)
+            module.Add(self.smdPad(module, size_pad, pcbnew.VECTOR2I(wxPoint(length+w1/2,0-p2vof)), "1", PAD_SHAPE_RECT,0,F_Cu,0.0,offset2))
         
         # Text size
         text_size = self.GetTextSize()  # IPC nominal
