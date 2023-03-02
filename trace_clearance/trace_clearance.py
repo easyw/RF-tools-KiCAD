@@ -55,7 +55,7 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator\n version 1.5"
+        self.name = "Trace Clearance Generator\n version 1.6"
         self.category = ""
         self.description = (
             "Generate a copper pour keepout for a selected trace."
@@ -126,13 +126,16 @@ def selected_tracks(pcb):
     redundant functionality?
     """
     tracks = []
+    
     if  hasattr(pcbnew,'TRACK'):
         track_item = pcbnew.TRACK
     else:
         track_item = pcbnew.PCB_TRACK
+        trk_arc  = pcbnew.PCB_ARC  #to be fixed
     for item in pcb.GetTracks():
-        if type(item) is track_item and item.IsSelected():
+        if (type(item) is track_item or type(item) is trk_arc) and item.IsSelected():
             tracks.append(item)
+            
     return tracks
 
 
