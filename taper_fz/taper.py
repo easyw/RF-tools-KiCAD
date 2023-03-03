@@ -29,7 +29,7 @@ def wxLogDebug(msg,show):
 #
 
 ##global __version__
-__version__ = "0.9"
+__version__ = "1.0"
 
 ToUnits = ToMM
 FromUnits = FromMM
@@ -665,7 +665,7 @@ def __GetAllTapers(board):
         if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
             zGA = zone.GetPriority()
         else: #kv7
-            zGa = zone.GetAssignedPriority()
+            zGA = zone.GetAssignedPriority()
         if zGA == MAGIC_TAPER_ZONE_ID:
             netname = zone.GetNetname()
             if netname not in tapers_zones.keys():
