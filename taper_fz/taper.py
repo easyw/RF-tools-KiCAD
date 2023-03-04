@@ -29,7 +29,7 @@ def wxLogDebug(msg,show):
 #
 
 ##global __version__
-__version__ = "1.0"
+__version__ = "1.1"
 
 ToUnits = ToMM
 FromUnits = FromMM
@@ -81,7 +81,10 @@ def __Bezier(p1, p2, p3, p4, n=20.0):
 
         x = int(a * p1[0] + b * p2[0] + c * p3[0] + d * p4[0])
         y = int(a * p1[1] + b * p2[1] + c * p3[1] + d * p4[1])
-        pts.append(wxPoint(x, y))
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            pts.append(wxPoint(x, y))
+        else: #kv7
+            pts.append(VECTOR2I(wxPoint(x, y)))
     return pts
 ##
 def __PointDistance(a,b):
@@ -461,19 +464,25 @@ def __ComputePointsTracks(track1, track2, segs):
     internal_delta_multiplier1 = 1.5
     idm1 = internal_delta_multiplier1 * (1+shift1*0.15)
     # find point on the track, sharp end of the teardrop
-    pointB = start1 + wxPoint(int(vecT1[0]*n +vecT1[1]*w1) , int(vecT1[1]*n -vecT1[0]*w1) ) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
-    pointA = start1 + wxPoint(int(vecT1[0]*n -vecT1[1]*w1) , int(vecT1[1]*n +vecT1[0]*w1) ) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
-    # Introduce a last point in order to cover the via centre.
-    # If not, the zone won't be filled or not connected
-    
-    #pointF = start1 + wxPoint( vecT1[0]*n -vecT1[1]*idm1*w1 , vecT1[1]*n -vecT1[0]*idm1*w1 )
-    #pointF = start1 + wxPoint(int(vecT1[0]*idm1*1.15*w1) , int(vecT1[1]*idm1*1.15*w1)) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
-    pointF = start1 + wxPoint(int(vecT1[0]*1.15*w1) , int(vecT1[1]*1.15*w1)) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
-    pointA2 = pointA + wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1))
-    pointB2 = pointB + wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1))    
-    #pointA2 = pointA + wxPoint(int(vecT1[0]*idm1*w1), int(vecT1[1]*idm1*w1))
-    #pointB2 = pointB + wxPoint(int(vecT1[0]*idm1*w1), int(vecT1[1]*idm1*w1))    
-    
+    if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+        pointB = start1 + wxPoint(int(vecT1[0]*n +vecT1[1]*w1) , int(vecT1[1]*n -vecT1[0]*w1) ) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointA = start1 + wxPoint(int(vecT1[0]*n -vecT1[1]*w1) , int(vecT1[1]*n +vecT1[0]*w1) ) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        # Introduce a last point in order to cover the via centre.
+        # If not, the zone won't be filled or not connected
+        
+        #pointF = start1 + wxPoint( vecT1[0]*n -vecT1[1]*idm1*w1 , vecT1[1]*n -vecT1[0]*idm1*w1 )
+        #pointF = start1 + wxPoint(int(vecT1[0]*idm1*1.15*w1) , int(vecT1[1]*idm1*1.15*w1)) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointF = start1 + wxPoint(int(vecT1[0]*1.15*w1) , int(vecT1[1]*1.15*w1)) + wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointA2 = pointA + wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1))
+        pointB2 = pointB + wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1))    
+        #pointA2 = pointA + wxPoint(int(vecT1[0]*idm1*w1), int(vecT1[1]*idm1*w1))
+        #pointB2 = pointB + wxPoint(int(vecT1[0]*idm1*w1), int(vecT1[1]*idm1*w1))    
+    else: #kv7    
+        pointB = start1 + VECTOR2I(wxPoint(int(vecT1[0]*n +vecT1[1]*w1) , int(vecT1[1]*n -vecT1[0]*w1) )) + VECTOR2I(wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1)))
+        pointA = start1 + VECTOR2I(wxPoint(int(vecT1[0]*n -vecT1[1]*w1) , int(vecT1[1]*n +vecT1[0]*w1) )) + VECTOR2I(wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1)))
+        pointF =  start1 + VECTOR2I(wxPoint(int(vecT1[0]*1.15*w1) , int(vecT1[1]*1.15*w1))) + VECTOR2I(wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1)))
+        pointA2 = pointA + VECTOR2I(wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1)))
+        pointB2 = pointB + VECTOR2I(wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1)))    
     #wx.LogMessage('w1='+str(ToMM(w1))+'w2='+str(ToMM(w2)))
     # In some cases of very short, eccentric tracks the points can end up
     # inside the teardrop. If this happens just cancel adding it
@@ -511,24 +520,29 @@ def __ComputePointsTracks(track1, track2, segs):
 
     internal_delta_multiplier2 = 1.5
     idm2 = internal_delta_multiplier2 *  (1+shift2*0.15)
-    pointC = end2 + wxPoint(int(vecC[0] * w2), int(vecC[1] * w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
-    pointE = end2 + wxPoint(int(vecE[0] * w2), int(vecE[1] * w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+    if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+        pointC = end2 + wxPoint(int(vecC[0] * w2), int(vecC[1] * w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointE = end2 + wxPoint(int(vecE[0] * w2), int(vecE[1] * w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        end2_shift = end2 + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        #pointC = end2 + wxPoint(int(vecC[0] *idm* w2), int(vecC[1] *idm* w2))
+        #pointE = end2 + wxPoint(int(vecE[0] *idm* w2), int(vecE[1] *idm* w2))
+        # pointC = via[0] + wxPoint(int(vecC[0] * radius), int(vecC[1] * radius))
+        # pointE = via[0] + wxPoint(int(vecE[0] * radius), int(vecE[1] * radius))
+        pointC2 = pointC + wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointE2 = pointE + wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        # Introduce a last point in order to cover the via centre.
+        # If not, the zone won't be filled
+        pointD = end2 + wxPoint(int(vecT2[0]*-0.5*w2) , int(vecT2[1]*-0.5*w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)) 
+        #pointD = end2 + wxPoint(int(vecT2[0]*-idm2*1.15*w2), int(vecT2[1]*-idm2*1.15*w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        # pointD = via[0] + wxPoint(int(vec[0]*-0.5*radius), int(vec[1]*-0.5*radius))
+    else: # kv7
+        pointC = end2 + VECTOR2I(wxPoint(int(vecC[0] * w2), int(vecC[1] * w2))) + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
+        pointE = end2 + VECTOR2I(wxPoint(int(vecE[0] * w2), int(vecE[1] * w2))) + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
+        end2_shift = end2 + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
+        pointC2 = pointC + VECTOR2I(wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2)))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointE2 = pointE + VECTOR2I(wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2)))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointD = end2 + VECTOR2I(wxPoint(int(vecT2[0]*-0.5*w2) , int(vecT2[1]*-0.5*w2))) + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
     
-    end2_shift = end2 + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
-    
-    #pointC = end2 + wxPoint(int(vecC[0] *idm* w2), int(vecC[1] *idm* w2))
-    #pointE = end2 + wxPoint(int(vecE[0] *idm* w2), int(vecE[1] *idm* w2))
-    # pointC = via[0] + wxPoint(int(vecC[0] * radius), int(vecC[1] * radius))
-    # pointE = via[0] + wxPoint(int(vecE[0] * radius), int(vecE[1] * radius))
-    
-    pointC2 = pointC + wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
-    pointE2 = pointE + wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
-    # Introduce a last point in order to cover the via centre.
-    # If not, the zone won't be filled
-    pointD = end2 + wxPoint(int(vecT2[0]*-0.5*w2) , int(vecT2[1]*-0.5*w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)) 
-    #pointD = end2 + wxPoint(int(vecT2[0]*-idm2*1.15*w2), int(vecT2[1]*-idm2*1.15*w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
-    # pointD = via[0] + wxPoint(int(vec[0]*-0.5*radius), int(vec[1]*-0.5*radius))
-
     pts = [pointA, pointB, pointC, pointD, pointE]
     if segs > 2:
         # curve1 = __Bezier(pts[1], tangentB, tangentC, pts[2], n=segs)
