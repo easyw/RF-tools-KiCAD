@@ -29,14 +29,14 @@ def wxLogDebug(msg,show):
 #
 
 ##global __version__
-__version__ = "1.1"
+__version__ = "1.2"
 
 ToUnits = ToMM
 FromUnits = FromMM
 
 MAGIC_TAPER_ZONE_ID = 0x4484
 
-dbg = True #False
+dbg = False
 
 def dummy():
     pass
