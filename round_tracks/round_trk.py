@@ -103,7 +103,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\n version 2.6"
+        self.name = "Rounder for Tracks\n version 2.7"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -396,7 +396,13 @@ def create_round_segments(pcb,sp,a1,ep,a2,cntr,rad,layer,width,Nn,N_SEGMENTS):
         #t = create_Track(pcb,points[-2],ep,layer,width,Nn,True) #avoiding rounding on last segment
         p1 = points[0]
         p2 = points[-1]
-        mp = mid_point(points[0],points[-1],(a2-a1))
+        angle = a2-a1
+        if angle > math.pi:
+            angle -= 2*math.pi
+        elif angle < -math.pi:
+            angle += 2*math.pi
+        #mp = mid_point(points[0],points[-1],(a2-a1))
+        mp = mid_point(points[0],points[-1],(angle))
         
         # #t = create_Arc(pcb,points[0],points[-1],mp,layer,width,Nn,True)
         #p1= wxPoint(203200000, 127000000)
