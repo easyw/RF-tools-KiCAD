@@ -38,7 +38,10 @@
 import sys
 import os
 from pcbnew import *
-from builtins import abs
+try:
+    from builtins import abs
+except:
+    pass
 import wx
 import pcbnew
 import math
@@ -103,7 +106,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\n version 2.7"
+        self.name = "Rounder for Tracks\n version 2.8"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
