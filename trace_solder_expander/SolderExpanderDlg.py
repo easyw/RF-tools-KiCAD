@@ -33,7 +33,7 @@ class SolderExpanderDlg ( wx.Dialog ):
 
 		bSizer4.Add( ( 0, 1), 1, wx.EXPAND, 5 )
 
-		self.m_bitmap1 = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.Size( 177,102 ), 0 )
+		self.m_bitmap1 = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 ) #wx.Size( 354,204 ), 0) #177,102 ), 0 )
 		bSizer4.Add( self.m_bitmap1, 0, wx.EXPAND, 5 )
 
 		self.m_staticText4 = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )

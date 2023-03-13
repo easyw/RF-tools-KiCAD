@@ -46,6 +46,9 @@ import wx
 import pcbnew
 import math
 import cmath
+# from wx import FileConfig
+import configparser
+        
 
 #from .RoundTrackDlg import RoundTrackDlg
 from . import RoundTrackDlg
@@ -68,7 +71,115 @@ delete_before_connect = False
 # import pcbnew; print (pcbnew.PLUGIN_DIRECTORIES_SEARCH)
 
 # Python plugin stuff
+def distance (p1,p2):
+    return math.hypot(p1.y-p2.y,p1.x-p2.x)
+#
+#gets the angle of a track
+def getTrackAngle(t1,center):
+    #use atan2 so the correct quadrant is returned
+    if t1.GetStart().x == center.x and t1.GetStart().y == center.y:
+        wxLogDebug("Start = Center",debug)
+        return math.atan2((t1.GetEnd().y - t1.GetStart().y), (t1.GetEnd().x - t1.GetStart().x))
+    else:
+        wxLogDebug("End = Center",debug)
+        return math.atan2((t1.GetStart().y - t1.GetEnd().y), (t1.GetStart().x - t1.GetEnd().x));
+#
+def getPointsAngle(p1,center):
+    #use atan2 so the correct quadrant is returned
+        wxLogDebug("End = Center",debug)
+        return math.atan2((p1.y - center.y), (p1.x - center.x));
+#
+#track length
+def GetTrackLength(t1):
+    return t1.GetLength()
+#
 
+def wxLogDebug(msg,show):
+    """printing messages only if show is omitted or True"""
+    if show:
+        wx.LogMessage(msg)
+# 
+def CalcLinLenght(self): # , dist,len_field):
+    import pcbnew
+    import math
+    import cmath
+    global debug
+    
+    pcb = pcbnew.GetBoard()
+    distI = FromUnits(float(self.m_distanceMM.Value))
+    tracks = []
+    #print ("TRACKS WHICH MATCH CRITERIA:")
+    if  hasattr(pcbnew,'TRACK'):
+        track_item = pcbnew.TRACK
+    else:
+        track_item = pcbnew.PCB_TRACK
+    for item in pcb.GetTracks():
+        if type(item) is track_item and item.IsSelected(): #item.GetNetname() == net_name:
+            tracks.append(item)    
+    if len (tracks) == 2:            
+        #add all the possible intersections to a unique set, for iterating over later
+        intersections = set();	
+        for t1 in range(len(tracks)):
+            for t2 in range(t1+1, len(tracks)):
+                #check if these two tracks share an endpoint
+                # reduce it to a 2-part tuple so there are not multiple objects of the same point in the set
+                if(tracks[t1].IsPointOnEnds(tracks[t2].GetStart())): 
+                    intersections.add((tracks[t2].GetStart().x, tracks[t2].GetStart().y))
+                if(tracks[t1].IsPointOnEnds(tracks[t2].GetEnd())):
+                    intersections.add((tracks[t2].GetEnd().x, tracks[t2].GetEnd().y))
+        if len(intersections)==1:
+            dbg=debug
+            for ip in intersections:
+                (x,y) = ip
+                intersection = wxPoint(x,y)
+                t1 = tracks [0]
+                t2 = tracks [1]
+                s1 = t1.GetStart()
+                s2 = t2.GetStart()
+                e1 = t1.GetEnd()
+                e2 = t2.GetEnd()
+                ini_len=t1.GetLength()+t2.GetLength()
+                wxLogDebug("t1: "+str(ToUnits(s1.x))+":"+str(ToUnits(s1.y))+";"+str(ToUnits(e1.x))+":"+str(ToUnits(e1.y)),dbg)
+                wxLogDebug("t2: "+str(ToUnits(s2.x))+":"+str(ToUnits(s2.y))+";"+str(ToUnits(e2.x))+":"+str(ToUnits(e2.y)),dbg)
+                wxLogDebug("t1 length: "+str(ToUnits(t1.GetLength())),dbg)
+                wxLogDebug("t2 length: "+str(ToUnits(t2.GetLength())),dbg)
+                wxLogDebug("intersection: "+str(ToUnits(x))+":"+str(ToUnits(y)),dbg)
+                wxLogDebug("lenght: "+str(ToUnits(ini_len)),dbg)
+                wxLogDebug("distance: "+str(self.m_distanceMM.Value),dbg)
+                angle1 = math.degrees((getTrackAngle(tracks[0],intersection)))
+                angle2 = math.degrees((getTrackAngle(tracks[1],intersection)))
+                end_coord1 = (distI) * cmath.exp(math.radians(angle1)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
+                end_coord2 = (distI) * cmath.exp(math.radians(angle2)*1j)
+                startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
+                endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
+                center,radius = getCircleCenterRadius( startP,endP,intersection )
+                angle = angle2-angle1
+                if angle > math.degrees(math.pi):
+                    angle -= math.degrees(2*math.pi)
+                elif angle < -math.degrees(math.pi):
+                    angle += 2*math.degrees(math.pi)
+                wxLogDebug("tracks angle: "+str(angle),dbg)
+                angleArc1 = math.degrees((getPointsAngle(startP,center)))
+                wxLogDebug("start angle: "+str(angleArc1),dbg)
+                angleArc2 = math.degrees((getPointsAngle(endP,center)))
+                wxLogDebug("end angle: "+str(angleArc2),dbg)
+                wxLogDebug("delta angle: "+str(angleArc1-angleArc2),dbg)
+                wxLogDebug("radius: "+str(ToUnits(radius)),dbg)
+                arc_len = abs((math.pi*2*ToUnits(radius)) * ((angleArc1-angleArc2)/360))
+                wxLogDebug("arc lenght: "+str(arc_len),dbg)
+                final_len=ToUnits(ini_len)-2*(float(self.m_distanceMM.Value))+arc_len
+                wxLogDebug("final lenght: "+str(final_len),dbg)
+                if not hasattr(pcbnew, 'EDA_RECT') or pcbnew.GetBuildVersion().startswith('(6.'): # kv7 or kv6
+                    self.m_segments.SetValue(str('%.3f'%(final_len)))
+                else:
+                    self.m_staticText31.SetLabel("Calc. Lenght "+str('%.3f'%(float(final_len)))+' Segm Num')
+                return final_len
+        else:
+            return 0
+    else:
+        return 0
+#
+                
 class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
     # from https://github.com/MitjaNemec/Kicad_action_plugins
     # hack for new wxFormBuilder generating code incompatible with old wxPython
@@ -85,12 +196,39 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
     def onConnectClick(self, event):
         return self.EndModal(wx.ID_REVERT)
 
+    # def GetConfig(self):
+    #     return [self.m_distanceMM.Value, self.GetSize()]
+
     def __init__(self,  parent):
-        global delete_before_connect
         import wx
+        global delete_before_connect
+        import math
+        import cmath
+        import pcbnew
+        import os
+        
+        
         RoundTrackDlg.RoundTrackDlg.__init__(self, parent)
+        self.m_distanceMM.SetValue("5")
+        #self.m_segments.SetValue(CalcLinLenght(self.m_distanceMM.Value,self.m_segments))
+        local_config_file = os.path.join(os.path.dirname(__file__), 'rt_config.ini')
+        config = configparser.ConfigParser()
+        config.read(local_config_file)
+        width = int(config.get('win_size','width'))
+        height = int(config.get('win_size','height'))
+        self.m_distanceMM.SetValue(config.get('params','distance'))
+        self.m_segments.SetValue(config.get('params','segments'))
+        #wx.LogMessage(str(width)+';'+str(height))
+        self.SetSize((width,height))
+        #self.m_distanceMM.SetValue("5")
+        self.Bind(wx.EVT_TEXT, self.OnDistChange,
+                  self.m_distanceMM)
+        # self.Bind(wx.EVT_TEXT, self.OnLenghtChange,
+        #           self.m_segments)
+        # self.Bind(wx.EVT_SET_FOCUS, self.Navigate())
+        #           self.m_segments)
         #self.GetSizer().Fit(self)
-        self.SetMinSize(self.GetSize())
+        # self.SetSize(self.GetSize())
         self.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
         self.m_buttonReconnect.Bind(wx.EVT_BUTTON, self.onConnectClick)
         if wx.__version__ < '4.0':
@@ -99,14 +237,31 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
         else:
             self.m_buttonReconnect.SetToolTip( u"Select two converging Tracks to re-connect them\nor Select tracks including one round corner to be straighten" )
             self.m_buttonRound.SetToolTip( u"Select two connected Tracks to round the corner\nThen choose distance from intersection and the number of segments" )
+        # self.m_distanceMM.SetValue("5")
+        if not hasattr(pcbnew, 'EDA_RECT') or pcbnew.GetBuildVersion().startswith('(6.'): # kv7 or kv6
+            self.m_staticText31.SetLabel("Calculated Lenght ...")
+            self.m_segments.SetValue('')
+            self.m_buttonRound.SetToolTip( u"Select two connected Tracks to round the corner\nThen choose distance from intersection" )
+            #self.m_segments.Enable(False)
+            # self.m_segments.SetFont(wx.Font(wx.BOLD))
+            # self.m_segments.Hide()
         if self.m_checkBoxDelete.IsChecked():
+            # self.m_staticText31.SetLabel("Calculated Lenght ...")
             delete_before_connect = True
-            
+        
+    # def OnLenghtChange(self, event: wx.CommandEvent): #second text ctrl
+    #     wx.MessageBox(self.m_segments.Value, 'info1',
+    #                 wx.OK | wx.ICON_WARNING)
+    def OnDistChange(self, event): #def OnDistChange(self, event: wx.CommandEvent): #first text ctrl
+        CalcLinLenght(self) #, self.m_distanceMM.Value,self.m_segments) #parameters in internal units
+        # wx.MessageBox(self.m_distanceMM.Value, 'info2',
+        #             wx.OK | wx.ICON_WARNING)
+ 
 #
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\n version 2.8"
+        self.name = "Rounder for Tracks\n version 2.9"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -127,7 +282,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         except:
             self.Warn(
                 "Invalid parameter for %s: Must be a positive number" % data)
-            val = None
+            val = 0
         return val
 
     def CheckSegmentsInput(self, value, data):
@@ -142,6 +297,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
             val = None
         return val
 
+    
     def Run(self):
         global delete_before_connect
         #self.pcb = GetBoard()
@@ -158,22 +314,54 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
             aParameters.m_buttonDelete.Disable()
             aParameters.m_checkBoxDelete.Disable()
         #aParameters = RoundTrack_DlgEx(_pcbnew_frame)
+        # local_config_file = os.path.join(os.path.dirname(__file__), 'rt_config.ini')
+        # config = configparser.ConfigParser()
+        # config.read(local_config_file)
+        # width = int(config.get('win_size','width'))
+        # height = int(config.get('win_size','height'))
+        # aParameters.m_distanceMM.SetValue(config.get('params','distance'))
+        #wx.LogMessage(str(width)+';'+str(height))
+        #aParameters.SetSize((width,height))
+        #aParameters.width=width
+        #aParameters.height=height
+        #aParameters.SetSize(width,height)
+
+        
         aParameters.Show()
+        calc_len = float(CalcLinLenght(aParameters)) #,aParameters.m_distanceMM.Value,aParameters.m_segments)
+
         #end hack
-        aParameters.m_distanceMM.SetValue("5")
-        aParameters.m_segments.SetValue("16")
+        #aParameters.m_distanceMM.SetValue("5")
+        #aParameters.m_segments.SetValue("16")
         aParameters.m_bitmap1.SetBitmap(wx.Bitmap( os.path.join(os.path.dirname(os.path.realpath(__file__)), "round_track_help.png") ) )
         modal_result = aParameters.ShowModal()
-        segments = self.CheckSegmentsInput(
-            aParameters.m_segments.GetValue(), "number of segments")
-        distI = FromMM(self.CheckDistanceInput(aParameters.m_distanceMM.GetValue(), "distance from intersection"))
+        #def OnKeyDown(self, e):
+        #    key = e.GetKeyCode()
+        #    wx.MessageBox(aParameters.m_segments.GetValue(), 'info',
+        #            wx.OK | wx.ICON_WARNING)
+
+        #calc_len=None
+        if hasattr(pcbnew, 'EDA_RECT') and not(pcbnew.GetBuildVersion().startswith('(6.')): # kv5 only
+            segments = self.CheckSegmentsInput(
+                aParameters.m_segments.GetValue(), "number of segments")
+            calc_len = float(CalcLinLenght(aParameters)) #,aParameters.m_distanceMM.Value,aParameters.m_segments)
+            #aParameters.m_staticText31.SetLabel("Calculated Lenght "+str('%.3f'%(float(CalcLinLenght(aParameters.m_distanceMM.Value,aParameters.m_segments)))))
+        else: #kv7
+            segments = 1
+            if len(aParameters.m_segments.GetValue()) > 0:
+                calc_len = float(aParameters.m_segments.GetValue())
+            else:
+                calc_len = 0
+            pass
+        dist = self.CheckDistanceInput(aParameters.m_distanceMM.GetValue(), "distance from intersection")
         if aParameters.m_checkBoxDelete.IsChecked():
             delete_before_connect = True
         else:
             delete_before_connect = False
-        if segments is not None and distI is not None:
+        if segments is not None and dist is not 0:
+            distI = FromMM(dist)
             if modal_result == wx.ID_OK:
-                Round_Selection(pcb, distI, segments)
+                Round_Selection(pcb, distI, segments, calc_len)
                 pcbnew.Refresh()
             elif modal_result == wx.ID_DELETE:
                 Delete_Segments(pcb)
@@ -186,34 +374,27 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
             #pcbnew.Refresh()
         else:
             None  # Invalid input
+        # wx.LogMessage(aParameters.GetConfig()[0])
+        # wx.LogMessage(str(aParameters.GetConfig()[1][0]))
+        # wx.LogMessage(str(aParameters.GetConfig()[1][1]))
+        # wx.LogMessage(str(aParameters.local_config_file))
+        local_config_file = os.path.join(os.path.dirname(__file__), 'rt_config.ini')
+        config = configparser.ConfigParser()
+        config.read(local_config_file)
+        config['win_size']['width'] = str(aParameters.GetSize()[0])
+        config['win_size']['height'] = str(aParameters.GetSize()[1])
+        config['params']['distance'] = aParameters.m_distanceMM.Value
+        with open(local_config_file, 'w') as configfile:
+            config.write(configfile)
+        # aParameters.width = int(config.get('win_size','width'))
+        # aParameters.height = int(config.get('win_size','height'))
+        # aParameters.SetSize(self.width,self.height)
         aParameters.Destroy()
         
         #Round_Selection(pcb)
 #
 
 
-def wxLogDebug(msg,show):
-    """printing messages only if show is omitted or True"""
-    if show:
-        wx.LogMessage(msg)
-# 
-def distance (p1,p2):
-    return math.hypot(p1.y-p2.y,p1.x-p2.x)
-#
-#gets the angle of a track
-def getTrackAngle(t1,center):
-    #use atan2 so the correct quadrant is returned
-    if t1.GetStart().x == center.x and t1.GetStart().y == center.y:
-        wxLogDebug("Start = Center",debug)
-        return math.atan2((t1.GetEnd().y - t1.GetStart().y), (t1.GetEnd().x - t1.GetStart().x))
-    else:
-        wxLogDebug("End = Center",debug)
-        return math.atan2((t1.GetStart().y - t1.GetEnd().y), (t1.GetStart().x - t1.GetEnd().x));
-#
-#track length
-def GetTrackLength(t1):
-    return t1.GetLength()
-#
 def create_Track(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None):
     #draw segment to test
     #new_line = pcbnew.DRAWSEGMENT(pcb)
@@ -565,7 +746,7 @@ def getSelTracksLength(pcb):
 ##    def HitTest(self, *args): for Tracks and Vias
 
 ##-----------------------------------------------------------------------------------------------------
-def Round_Selection(pcb,distI,segments):
+def Round_Selection(pcb,distI,segments,calc_len=None):
     global delete_before_connect
     tracks = []
     #print ("TRACKS WHICH MATCH CRITERIA:")
@@ -666,13 +847,22 @@ def Round_Selection(pcb,distI,segments):
                     w3 = 3*float(width)
                     rad = float(ToMM(radius))
                     wxLogDebug(str(w3),debug)
+                    angle=angle1-angle2
+                    if angle > math.degrees(math.pi):
+                        angle -= math.degrees(2*math.pi)
+                    elif angle < -math.degrees(math.pi):
+                        angle += 2*math.degrees(math.pi)
+                    
                     msg = u'Corner Radius: {0:.3f} mm'.format(rad)
-                    msg+= u'\nAngle between tracks: {0:.1f} deg'.format(angle1-angle2)
+                    msg+= u'\nAngle between tracks: {0:.1f} deg'.format(abs(angle))
+                    if calc_len is not None:
+                        msg+= u'\nSelected Tracks Length: {0:.3f} mm'.format(calc_len)
                     if rad < w3:
                         msg += u'\n\u2718 ALERT: Radius < 3 *(track width) !!!\n[{0:.3f}mm < 3*{1:.3f}mm]'.format(rad,width)
                     #else:
                     #    #msg = u'\n\u2714 Radius > 3 * (track width)'
                     #    msg = u'\u2714 Corner Radius: {0:.3f} mm'.format(rad)
+                    
                     wxLogDebug(msg,True)
                     pcbnew.Refresh()
     # import round_trk; reload(round_trk)

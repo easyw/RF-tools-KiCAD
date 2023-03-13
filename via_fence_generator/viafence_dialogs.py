@@ -3,6 +3,7 @@
 import os
 import sys
 from .viafence_basedialogs import *
+import configparser
 
 class MainDialog(MainDialogBase):
     def __init__(self, parent):
@@ -20,8 +21,23 @@ class MainDialog(MainDialogBase):
             self.chkDebugDump.SetToolTipString( u"Creates a json file in the same directory as the opened board file containing the tracks and settings" )
         else:
             self.chkDebugDump.SetToolTip( u"Creates a json file in the same directory as the opened board file containing the tracks and settings" )
-
-
+        self.local_config_file = os.path.join(os.path.dirname(__file__), 'vf_config.ini')
+        config = configparser.ConfigParser()
+        config.read(self.local_config_file)
+        self.txtViaOffset.SetValue(config.get('params','offset'))
+        self.txtViaPitch.SetValue(config.get('params','pitch'))
+        self.txtViaDrill.SetValue(config.get('params','via_drill'))
+        self.txtViaSize.SetValue(config.get('params','via_size'))
+        self.chkIncludeSelection.SetValue(config['options'].getboolean('include_selected'))
+        self.chkRemoveViasWithClearanceViolation.SetValue(config['options'].getboolean('remove_violations'))
+        self.chkIncludeDrawing.SetValue(config['options'].getboolean('include_drawings'))
+        # self.width = int(config.get('win_size','width'))
+        # self.height = int(config.get('win_size','height'))
+        # self.m_clearanceMM.SetValue(config.get('params','clearance'))
+        # self.SetSize(self.width,self.height)
+        #self.GetSizer().Fit(self)
+        #self.SetMinSize(self.GetSize())
+        
     def OnNetFilterCheckBox(self, event):
         self.txtNetFilter.Enable(event.IsChecked())
 

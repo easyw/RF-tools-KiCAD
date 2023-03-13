@@ -30,6 +30,7 @@ import wx
 # import numpy as np
 from . import TraceClearanceDlg
 import math
+import configparser
 
 class TraceClearance_Dlg(TraceClearanceDlg.TraceClearanceDlg):
     """
@@ -45,8 +46,17 @@ class TraceClearance_Dlg(TraceClearanceDlg.TraceClearanceDlg):
         """
         """
         TraceClearanceDlg.TraceClearanceDlg.__init__(self, parent)
-        self.SetMinSize(self.GetSize())
-
+        #self.SetMinSize(self.GetSize())
+        self.SetMinSize(wx.Size(100,100))
+        self.local_config_file = os.path.join(os.path.dirname(__file__), 'tc_config.ini')
+        config = configparser.ConfigParser()
+        config.read(self.local_config_file)
+        width = int(config.get('win_size','width'))
+        height = int(config.get('win_size','height'))
+        self.m_clearance.SetValue(config.get('params','clearance'))
+        #wx.LogMessage(str(width)+';'+str(height))
+        #self.GetSizer().Fit(self)
+        self.SetSize((width,height))
 
 class TraceClearance(pcbnew.ActionPlugin):
     """
@@ -55,8 +65,8 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator\n version 1.6"
-        self.category = ""
+        self.name = "Trace Clearance Generator\n version 1.7"
+        self.category = "Modify PCB"
         self.description = (
             "Generate a copper pour keepout for a selected trace."
         )
@@ -64,7 +74,7 @@ class TraceClearance(pcbnew.ActionPlugin):
         self.icon_file_name = os.path.join(
             os.path.dirname(__file__), "./trace_clearance.png"
         )
-
+        
     def Run(self):
         """
         """
@@ -75,12 +85,12 @@ class TraceClearance(pcbnew.ActionPlugin):
         #     if x.GetTitle().lower().startswith("pcbnew")
         # ][0]
         wx_params = TraceClearance_Dlg(_pcbnew_frame)
-        wx_params.m_clearance.SetValue("0.2")
+        #wx_params.m_clearance.SetValue("0.2")
         wx_params.m_bitmap.SetBitmap(
             wx.Bitmap(
                 os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
-                    "trace_clearance_dialog.png",
+                    "trace_clearance_dialog_small.png",
                 )
             )
         )
@@ -90,6 +100,14 @@ class TraceClearance(pcbnew.ActionPlugin):
         )
         if clearance is not None:
             pcb = pcbnew.GetBoard()
+            wx_params.local_config_file = os.path.join(os.path.dirname(__file__), 'tc_config.ini')
+            config = configparser.ConfigParser()
+            config.read(wx_params.local_config_file)
+            config['win_size']['width'] = str(wx_params.GetSize()[0])
+            config['win_size']['height'] = str(wx_params.GetSize()[1])
+            config['params']['clearance'] = wx_params.m_clearance.Value
+            with open(wx_params.local_config_file, 'w') as configfile:
+                config.write(configfile)
             if modal_res == wx.ID_OK:
                 tracks = selected_tracks(pcb)
                 if len(tracks) > 0:

@@ -29,9 +29,13 @@ def getSelTracksLength(pcb):
         if not hasattr(pcbnew,'TRACK'):
             item = pcbnew.Cast_to_PCB_TRACK(item)
             trktp = pcbnew.PCB_TRACK
+            arctp = pcbnew.PCB_ARC
         else:
             trktp = pcbnew.TRACK
+            arctp = None
         if type(item) is trktp and item.IsSelected():
+            ln+=(item.GetLength())
+        if type(item) is arctp and item.IsSelected():
             ln+=(item.GetLength())
     return(ln)
     #print(pcbnew.ToMM(ln))
@@ -42,10 +46,15 @@ def getSelTracks(pcb):
         if not hasattr(pcbnew,'TRACK'):
             item = pcbnew.Cast_to_PCB_TRACK(item)
             trktp = pcbnew.PCB_TRACK
+            arctp = pcbnew.PCB_ARC
         else:
             trktp = pcbnew.TRACK
+            arctp = None
         if type(item) is trktp and item.IsSelected():
             tracks.append(item)
+        if type(item) is arctp and item.IsSelected():
+            tracks.append(item)
+        
     return tracks
 #
 def find_Tracks_between_Pads(pcb,pad1,pad2):
@@ -89,7 +98,7 @@ def getTrackAngleRadians(track):
 # Python plugin stuff
 class SelectedTracesLenght(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Measure Length for Selected Tracks\n version 1.3"
+        self.name = "Measure Length for Selected Tracks\n version 1.4"
         self.category = "Modify PCB"
         self.description = "Measure Length for Selected Tracks"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./trace_length.png")

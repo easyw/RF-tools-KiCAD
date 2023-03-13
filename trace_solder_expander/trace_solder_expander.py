@@ -43,6 +43,8 @@ import wx
 import pcbnew
 import math
 import uuid
+import configparser
+
 
 debug = False #True
 def wxLogDebug(msg,show):
@@ -93,7 +95,15 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
         global discretize
         SolderExpanderDlg.SolderExpanderDlg.__init__(self, parent)
         self.m_buttonDelete.Bind(wx.EVT_BUTTON, self.onDeleteClick)
-        self.SetMinSize(self.GetSize())
+        #self.SetMinSize(self.GetSize())
+        self.local_config_file = os.path.join(os.path.dirname(__file__), 'tse_config.ini')
+        config = configparser.ConfigParser()
+        config.read(self.local_config_file)
+        width = int(config.get('win_size','width'))
+        height = int(config.get('win_size','height'))
+        self.m_clearanceMM.SetValue(config.get('params','clearance'))
+        #wx.LogMessage(str(width)+';'+str(height))
+        self.SetSize((width,height))
         #if self.m_checkBoxD.IsChecked():
         #    discretize = True
         #    #wx.LogMessage(str(discretize) + ' 0')
@@ -104,7 +114,7 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\n version 2.4"
+        self.name = "Solder Mask Expander for Tracks\n version 2.5"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -148,6 +158,10 @@ class Solder_Expander(pcbnew.ActionPlugin):
             aParameters.m_buttonDelete.Hide()
             aParameters.m_staticText1011.Hide()
             aParameters.m_checkBoxD.SetToolTip( u"check this to discretize arcs with segments" )
+            if not hasattr(pcbnew, 'EDA_RECT'): # kv7
+                aParameters.m_checkBoxD.Disable()
+                aParameters.m_checkBoxD.Hide()
+                aParameters.m_staticText10111.Hide()
             #if aParameters.m_checkBoxD.IsChecked():
             #    discretize = True
             #    wx.LogMessage(str(discretize) + ' 1')
@@ -175,7 +189,6 @@ class Solder_Expander(pcbnew.ActionPlugin):
             #    wx.LogMessage(str(discretize) + ' 1')
             #else:
             #    discretize = False
-        
         if clearance is not None:
             if modal_result == wx.ID_OK:
                 #pcb = pcbnew.GetBoard()
@@ -206,6 +219,14 @@ class Solder_Expander(pcbnew.ActionPlugin):
                 None  # Cancel
         else:
             None  # Invalid input
+        aParameters.local_config_file = os.path.join(os.path.dirname(__file__), 'tse_config.ini')
+        config = configparser.ConfigParser()
+        config.read(aParameters.local_config_file)
+        config['win_size']['width'] = str(aParameters.GetSize()[0])
+        config['win_size']['height'] = str(aParameters.GetSize()[1])
+        config['params']['clearance'] = aParameters.m_clearanceMM.Value
+        with open(aParameters.local_config_file, 'w') as configfile:
+            config.write(configfile)
         aParameters.Destroy()
 #
 def selectListTracks(pcb,tracks):

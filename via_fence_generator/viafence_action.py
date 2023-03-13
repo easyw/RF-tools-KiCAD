@@ -11,6 +11,7 @@ import math
 import wx
 import uuid
 import random
+import configparser
 
 from collections import OrderedDict
 from .viafence import *
@@ -35,7 +36,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 3.0"
+        self.name = "Via Fence Generator\nversion 3.1"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -432,6 +433,14 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         
             self.mainDlg = MainDialog(None)
             self.selfToMainDialog()
+            self.local_config_file = os.path.join(os.path.dirname(__file__), 'vf_config.ini')
+            config = configparser.ConfigParser()
+            config.read(self.local_config_file)
+            # self.width = int(config.get('win_size','width'))
+            # self.height = int(config.get('win_size','height'))
+            #self.m_clearanceMM.SetValue(config.get('params','clearance'))
+            ## self.mainDlg.SetSize(100,100) #self.width,self.height)
+            
             if hasattr(self.boardObj, 'm_Uuid'):
                 self.mainDlg.m_buttonDelete.Disable()
                 self.mainDlg.m_buttonDelete.SetToolTip( u"fencing vias are placed in a group,\nto delete fencing vias, just delete the group" )
@@ -483,17 +492,32 @@ class ViaFenceAction(pcbnew.ActionPlugin):
         
                 # Do we want to include drawing segments?
                 if (self.isIncludeDrawingChecked):
-                    boardItem = self.boardObj.GetDrawings().GetFirst()
+                    if hasattr(self.boardObj.GetDrawings, 'GetFirst'):
+                        boardItem = self.boardObj.GetDrawings().GetFirst()
+                    else:
+                        self.boardObj.GetDrawings().sort
+                        boardItem = self.boardObj.GetDrawings()[0]
+                        boardItems = self.boardObj.GetDrawings()
+                    i = 0
                     while boardItem is not None:
-                        if pcbnew.DRAWSEGMENT.ClassOf(boardItem):
+                        if hasattr(pcbnew,'DRAWSEGMENT'):
+                            res = pcbnew.DRAWSEGMENT.ClassOf(boardItem)
+                        else:
+                            res = pcbnew.PCB_SHAPE().ClassOf(boardItem)
+                        if res:
                             # A drawing segment (not a text or something else)
                             drawingObject = boardItem.Cast()
                             if drawingObject.GetShape() == pcbnew.S_SEGMENT:
                                 # A straight line
                                 lineObjects += [drawingObject]
-        
-                        boardItem = boardItem.Next()
-                
+                        if hasattr(pcbnew,'DRAWSEGMENT'):
+                            boardItem = boardItem.Next()
+                        else:
+                            if i < len(boardItems)-1:
+                                i+=1
+                                boardItem = self.boardObj.GetDrawings()[i]
+                            else:
+                                boardItem = None
                 # Do we want to include track segments?
                 if (self.isIncludeSelectionChecked):
                     if (hasattr(pcbnew,'DRAWSEGMENT')):
@@ -636,6 +660,25 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                 #    self.boardObj.RemoveNative(via)
                 #    #wx.LogMessage('removing via')
                 #pcbnew.Refresh()
+            self.local_config_file = os.path.join(os.path.dirname(__file__), 'vf_config.ini')
+            config = configparser.ConfigParser()
+            config.read(self.local_config_file)
+            # config['win_size']['width'] = str(self.mainDlg.GetSize()[0])
+            # config['win_size']['height'] = str(self.mainDlg.GetSize()[1])
+            
+            config['params']['offset'] = self.mainDlg.txtViaOffset.GetValue()
+            config['params']['pitch'] = self.mainDlg.txtViaPitch.GetValue()
+            config['params']['via_drill'] = self.mainDlg.txtViaDrill.GetValue()
+            config['params']['via_size'] = self.mainDlg.txtViaSize.GetValue()
+            
+            config['options']['include_selected'] = str(self.mainDlg.chkIncludeSelection.GetValue())
+            config['options']['include_drawings'] = str(self.mainDlg.chkIncludeDrawing.GetValue())
+            config['options']['remove_violations'] = str(self.mainDlg.chkRemoveViasWithClearanceViolation.GetValue())
+        
+            with open(self.local_config_file, 'w') as configfile:
+                config.write(configfile)
+            
+            #wx.LogMessage('end')
             self.mainDlg.Destroy()  #the Dlg needs to be destroyed to release pcbnew
 
 # TODO: Implement
