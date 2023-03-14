@@ -139,41 +139,50 @@ def CalcLinLenght(self): # , dist,len_field):
                 e1 = t1.GetEnd()
                 e2 = t2.GetEnd()
                 ini_len=t1.GetLength()+t2.GetLength()
-                wxLogDebug("t1: "+str(ToUnits(s1.x))+":"+str(ToUnits(s1.y))+";"+str(ToUnits(e1.x))+":"+str(ToUnits(e1.y)),dbg)
-                wxLogDebug("t2: "+str(ToUnits(s2.x))+":"+str(ToUnits(s2.y))+";"+str(ToUnits(e2.x))+":"+str(ToUnits(e2.y)),dbg)
-                wxLogDebug("t1 length: "+str(ToUnits(t1.GetLength())),dbg)
-                wxLogDebug("t2 length: "+str(ToUnits(t2.GetLength())),dbg)
-                wxLogDebug("intersection: "+str(ToUnits(x))+":"+str(ToUnits(y)),dbg)
-                wxLogDebug("lenght: "+str(ToUnits(ini_len)),dbg)
-                wxLogDebug("distance: "+str(self.m_distanceMM.Value),dbg)
-                angle1 = math.degrees((getTrackAngle(tracks[0],intersection)))
-                angle2 = math.degrees((getTrackAngle(tracks[1],intersection)))
-                end_coord1 = (distI) * cmath.exp(math.radians(angle1)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
-                end_coord2 = (distI) * cmath.exp(math.radians(angle2)*1j)
-                startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
-                endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
-                center,radius = getCircleCenterRadius( startP,endP,intersection )
-                angle = angle2-angle1
-                if angle > math.degrees(math.pi):
-                    angle -= math.degrees(2*math.pi)
-                elif angle < -math.degrees(math.pi):
-                    angle += 2*math.degrees(math.pi)
-                wxLogDebug("tracks angle: "+str(angle),dbg)
-                angleArc1 = math.degrees((getPointsAngle(startP,center)))
-                wxLogDebug("start angle: "+str(angleArc1),dbg)
-                angleArc2 = math.degrees((getPointsAngle(endP,center)))
-                wxLogDebug("end angle: "+str(angleArc2),dbg)
-                wxLogDebug("delta angle: "+str(angleArc1-angleArc2),dbg)
-                wxLogDebug("radius: "+str(ToUnits(radius)),dbg)
-                arc_len = abs((math.pi*2*ToUnits(radius)) * ((angleArc1-angleArc2)/360))
-                wxLogDebug("arc lenght: "+str(arc_len),dbg)
-                final_len=ToUnits(ini_len)-2*(float(self.m_distanceMM.Value))+arc_len
-                wxLogDebug("final lenght: "+str(final_len),dbg)
-                if not hasattr(pcbnew, 'EDA_RECT') or pcbnew.GetBuildVersion().startswith('(6.'): # kv7 or kv6
-                    self.m_segments.SetValue(str('%.3f'%(final_len)))
+                t1_ulen = t1.GetLength()
+                t2_ulen = t2.GetLength()
+                max_len = min(t1_ulen, t2_ulen)
+                if max_len < distI:
+                    self.m_staticText31.SetLabel("Max. Dist. "+str('%.3f'%(float(ToUnits(max_len)))))
+                    self.m_segments.SetValue('------')
+                    return 0
                 else:
-                    self.m_staticText31.SetLabel("Calc. Lenght "+str('%.3f'%(float(final_len)))+' Segm Num')
-                return final_len
+                    wxLogDebug("t1: "+str(ToUnits(s1.x))+":"+str(ToUnits(s1.y))+";"+str(ToUnits(e1.x))+":"+str(ToUnits(e1.y)),dbg)
+                    wxLogDebug("t2: "+str(ToUnits(s2.x))+":"+str(ToUnits(s2.y))+";"+str(ToUnits(e2.x))+":"+str(ToUnits(e2.y)),dbg)
+                    wxLogDebug("t1 length: "+str(ToUnits(t1.GetLength())),dbg)
+                    wxLogDebug("t2 length: "+str(ToUnits(t2.GetLength())),dbg)
+                    wxLogDebug("intersection: "+str(ToUnits(x))+":"+str(ToUnits(y)),dbg)
+                    wxLogDebug("lenght: "+str(ToUnits(ini_len)),dbg)
+                    wxLogDebug("distance: "+str(self.m_distanceMM.Value),dbg)
+                    angle1 = math.degrees((getTrackAngle(tracks[0],intersection)))
+                    angle2 = math.degrees((getTrackAngle(tracks[1],intersection)))
+                    end_coord1 = (distI) * cmath.exp(math.radians(angle1)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
+                    end_coord2 = (distI) * cmath.exp(math.radians(angle2)*1j)
+                    startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
+                    endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
+                    center,radius = getCircleCenterRadius( startP,endP,intersection )
+                    angle = angle2-angle1
+                    if angle > math.degrees(math.pi):
+                        angle -= math.degrees(2*math.pi)
+                    elif angle < -math.degrees(math.pi):
+                        angle += 2*math.degrees(math.pi)
+                    wxLogDebug("tracks angle: "+str(angle),dbg)
+                    angleArc1 = math.degrees((getPointsAngle(startP,center)))
+                    wxLogDebug("start angle: "+str(angleArc1),dbg)
+                    angleArc2 = math.degrees((getPointsAngle(endP,center)))
+                    wxLogDebug("end angle: "+str(angleArc2),dbg)
+                    wxLogDebug("delta angle: "+str(angleArc1-angleArc2),dbg)
+                    wxLogDebug("radius: "+str(ToUnits(radius)),dbg)
+                    arc_len = abs((math.pi*2*ToUnits(radius)) * ((angleArc1-angleArc2)/360))
+                    wxLogDebug("arc lenght: "+str(arc_len),dbg)
+                    final_len=ToUnits(ini_len)-2*(float(self.m_distanceMM.Value))+arc_len
+                    wxLogDebug("final lenght: "+str(final_len),dbg)
+                    if not hasattr(pcbnew, 'EDA_RECT') or pcbnew.GetBuildVersion().startswith('(6.'): # kv7 or kv6
+                        self.m_segments.SetValue(str('%.3f'%(final_len)))
+                        self.m_staticText31.SetLabel("Calculated Lenght ...")
+                    else:
+                        self.m_staticText31.SetLabel("Calc. Lenght "+str('%.3f'%(float(final_len)))+' Segm Num')
+                    return final_len
         else:
             return 0
     else:
@@ -349,7 +358,10 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         else: #kv7
             segments = 1
             if len(aParameters.m_segments.GetValue()) > 0:
-                calc_len = float(aParameters.m_segments.GetValue())
+                try:
+                    calc_len = float(aParameters.m_segments.GetValue())
+                except:
+                    calc_len = 0
             else:
                 calc_len = 0
             pass
