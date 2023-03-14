@@ -105,6 +105,10 @@ def CalcLinLenght(self): # , dist,len_field):
     import cmath
     global debug
     
+    local_config_file = os.path.join(os.path.dirname(__file__), 'rt_config.ini')
+    config = configparser.ConfigParser()
+    config.read(local_config_file)
+    orig_segments=config.get('params','segments')
     pcb = pcbnew.GetBoard()
     distI = FromUnits(float(self.m_distanceMM.Value))
     tracks = []
@@ -182,6 +186,8 @@ def CalcLinLenght(self): # , dist,len_field):
                         self.m_staticText31.SetLabel("Calculated Lenght ...")
                     else:
                         self.m_staticText31.SetLabel("Calc. Lenght "+str('%.3f'%(float(final_len)))+' Segm Num')
+                        if self.m_segments.Value == '------':
+                            self.m_segments.SetValue(orig_segments)
                     return final_len
         else:
             return 0
