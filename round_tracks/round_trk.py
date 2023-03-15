@@ -276,7 +276,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\n version 2.9"
+        self.name = "Rounder for Tracks\n version 3.0"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -376,7 +376,7 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
             delete_before_connect = True
         else:
             delete_before_connect = False
-        if segments is not None and dist is not 0:
+        if segments is not None and dist != 0:
             distI = FromMM(dist)
             if modal_result == wx.ID_OK:
                 Round_Selection(pcb, distI, segments, calc_len)
