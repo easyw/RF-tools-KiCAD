@@ -181,7 +181,8 @@ def CalcLinLenght(self): # , dist,len_field):
                     wxLogDebug("arc lenght: "+str(arc_len),dbg)
                     final_len=ToUnits(ini_len)-2*(float(self.m_distanceMM.Value))+arc_len
                     wxLogDebug("final lenght: "+str(final_len),dbg)
-                    if not hasattr(pcbnew, 'EDA_RECT') or pcbnew.GetBuildVersion().startswith('(6.'): # kv7 or kv6
+                    pcb_v = pcbnew.GetBuildVersion()
+                    if not hasattr(pcbnew, 'EDA_RECT') or pcb_v.startswith('(6.') or pcb_v.startswith('6.'): # kv7 or kv6
                         self.m_segments.SetValue(str('%.3f'%(final_len)))
                         self.m_staticText31.SetLabel("Calculated Lenght ...")
                     else:
@@ -253,7 +254,8 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
             self.m_buttonReconnect.SetToolTip( u"Select two converging Tracks to re-connect them\nor Select tracks including one round corner to be straighten" )
             self.m_buttonRound.SetToolTip( u"Select two connected Tracks to round the corner\nThen choose distance from intersection and the number of segments" )
         # self.m_distanceMM.SetValue("5")
-        if not hasattr(pcbnew, 'EDA_RECT') or pcbnew.GetBuildVersion().startswith('(6.'): # kv7 or kv6
+        pcb_v = pcbnew.GetBuildVersion()
+        if not hasattr(pcbnew, 'EDA_RECT') or pcb_v.startswith('(6.') or pcb_v.startswith('6.'): # kv7 or kv6
             self.m_staticText31.SetLabel("Calculated Lenght ...")
             self.m_segments.SetValue('')
             self.m_buttonRound.SetToolTip( u"Select two connected Tracks to round the corner\nThen choose distance from intersection" )
@@ -276,7 +278,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\n version 3.0"
+        self.name = "Rounder for Tracks\n version 3.1"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")
@@ -302,14 +304,18 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def CheckSegmentsInput(self, value, data):
         val = None
-        try:
-            val = int(value)
-            if (val < 2) or (val >32):
-                raise Exception("Invalid")
-        except:
-            self.Warn(
-                "Invalid parameter for %s: Must be bigger than 2" % data)
-            val = None
+        pcb_v = pcbnew.GetBuildVersion()
+        if not hasattr(pcbnew, 'EDA_RECT') or pcb_v.startswith('(6.') or pcb_v.startswith('6.'): # kv7 or kv6
+            pass
+        else: #kv5
+            try:
+                val = int(value)
+                if (val < 2) or (val >32):
+                    raise Exception("Invalid")
+            except:
+                self.Warn(
+                    "Invalid parameter for %s: Must be bigger than 2" % data)
+                val = None
         return val
 
     
@@ -356,12 +362,8 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
         #            wx.OK | wx.ICON_WARNING)
 
         #calc_len=None
-        if hasattr(pcbnew, 'EDA_RECT') and not(pcbnew.GetBuildVersion().startswith('(6.')): # kv5 only
-            segments = self.CheckSegmentsInput(
-                aParameters.m_segments.GetValue(), "number of segments")
-            calc_len = float(CalcLinLenght(aParameters)) #,aParameters.m_distanceMM.Value,aParameters.m_segments)
-            #aParameters.m_staticText31.SetLabel("Calculated Lenght "+str('%.3f'%(float(CalcLinLenght(aParameters.m_distanceMM.Value,aParameters.m_segments)))))
-        else: #kv7
+        pcb_v = pcbnew.GetBuildVersion()
+        if not hasattr(pcbnew, 'EDA_RECT') or pcb_v.startswith('(6.') or pcb_v.startswith('6.'): # kv7 or kv6
             segments = 1
             if len(aParameters.m_segments.GetValue()) > 0:
                 try:
@@ -371,6 +373,11 @@ class Tracks_Rounder(pcbnew.ActionPlugin):
             else:
                 calc_len = 0
             pass
+        else: #kv5
+            segments = self.CheckSegmentsInput(
+                aParameters.m_segments.GetValue(), "number of segments")
+            calc_len = float(CalcLinLenght(aParameters)) #,aParameters.m_distanceMM.Value,aParameters.m_segments)
+            #aParameters.m_staticText31.SetLabel("Calculated Lenght "+str('%.3f'%(float(CalcLinLenght(aParameters.m_distanceMM.Value,aParameters.m_segments)))))
         dist = self.CheckDistanceInput(aParameters.m_distanceMM.GetValue(), "distance from intersection")
         if aParameters.m_checkBoxDelete.IsChecked():
             delete_before_connect = True
