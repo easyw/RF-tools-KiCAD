@@ -235,8 +235,9 @@ def semicircle_points(circle_center, radius, angle_norm, is_start=True):
     # angles = np.linspace(
     #     angle_norm + np.pi / 2, angle_norm + 3 * np.pi / 2, num_points + 2
     # )
-    start    = angle_norm + math.pi / 2
-    stop     = angle_norm + 3 * math.pi / 2
+    angle_offset = 0 if is_start else math.pi
+    start    = angle_offset + angle_norm + math.pi / 2
+    stop     = angle_offset + angle_norm + 3 * math.pi / 2
     num_vals = num_points
     delta = (stop-start)/(num_vals-1)
     evenly_spaced = [start + i * delta for i in range(num_vals)]
@@ -245,9 +246,6 @@ def semicircle_points(circle_center, radius, angle_norm, is_start=True):
     # wx.LogMessage(str(angles))
     angles = angles[1:-1]
     # wx.LogMessage(str(angles)+'1')
-    if not is_start:
-        # angles = np.add(angles, np.pi)
-        angles.append(math.pi)
     pts = []
     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
         for ang in angles:
