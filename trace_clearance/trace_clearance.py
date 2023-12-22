@@ -164,13 +164,18 @@ def set_keepouts(pcb, tracks, clearance):
         track_start = track.GetStart()
         track_end = track.GetEnd()
         if track_start.x == track_end.x and track_start.y == track_end.y:
-            continue
+            continue # skip if the track starts and stops at the same point
         track_width = track.GetWidth()
         layer = track.GetLayerSet()
+        track_midpoint = track.GetMid() if type(track) is pcbnew.PCB_ARC else None
+
+        # if the track is an arc but is nearly or actually linear, treat as linear
+        if track_midpoint and is_midpoint_linear(track_start, track_start, track_midpoint):
+            track_midpoint = None
 
         if  hasattr(pcbnew,'ZONE_CONTAINER'):
             keepout = pcbnew.ZONE_CONTAINER(pcb)
-            pts = poly_points(track_start, track_end, track_width, clearance)
+            pts = poly_points(track_start, track_end, track_midpoint, track_width, clearance)
             keepout.AddPolygon(pts)
             keepout.SetIsKeepout(True)
             keepout.SetDoNotAllowCopperPour(True)
@@ -179,8 +184,7 @@ def set_keepouts(pcb, tracks, clearance):
             keepout.SetLayerSet(layer)
         else:
             keepout = pcbnew.ZONE(pcb)
-            pts = poly_points(track_start, track_end, track_width, clearance)
-            # wx.LogMessage(str(pts))
+            pts = poly_points(track_start, track_end, track_midpoint, track_width, clearance)
             keepout.AddPolygon(pts)
             #keepout.SetIsKeepout(True)
             keepout.SetIsRuleArea(True)  # was SetIsKeepout
@@ -193,15 +197,28 @@ def set_keepouts(pcb, tracks, clearance):
     pcbnew.Refresh()
 
 
-def poly_points(track_start, track_end, track_width, clearance):
+def is_midpoint_linear(start, end, test):
+    """
+    Check if the 'test' midpoint is on the line segment defined by 'start' and 'end'.
+    """
+    # Check if the area of the triangle formed by the points is close to zero
+    # which indicates collinearity.
+    area = start.x * (end.y - test.y) + end.x * (test.y - start.y) + test.x * (start.y - end.y)
+    if not math.isclose(area, 0, abs_tol=1e-6):
+        return False
+    # Check if 'test' is between 'start' and 'end'
+    if min(start.x, end.x) <= test.x <= max(start.x, end.x) and min(start.y, end.y) <= test.y <= max(start.y, end.y):
+        return True
+    return False
+
+
+def poly_points(track_start, track_end, track_midpoint, track_width, clearance):
     """
     """
     delta = track_width / 2 + clearance
     dx = track_end.x - track_start.x
     dy = track_end.y - track_start.y
-    # theta = np.arctan2(dy, dx)
     theta = math.atan2(dy, dx)
-    # len = np.sqrt(np.power(dx, 2) + np.power(dy, 2))
     len = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
     dx_norm = dx / len
     dy_norm = dy / len
@@ -213,18 +230,102 @@ def poly_points(track_start, track_end, track_width, clearance):
     else: #kv7
         pt_delta = pcbnew.VECTOR2I(pcbnew.wxPoint(delta_x, delta_y))
     pts = []
-    pts.append(track_start + pt_delta)
-    for pt in semicircle_points(track_start, delta, theta, True):
-        pts.append(pt)
-    pts.append(track_start - pt_delta)
-    pts.append(track_end - pt_delta)
-    for pt in semicircle_points(track_end, delta, theta, False):
-        pts.append(pt)
-    pts.append(track_end + pt_delta)
+    if track_midpoint is not None: # arc
+        center, ccw = arc_center(track_start, track_midpoint, track_end)
+        if ccw: # make it clockwise by swapping what is the 'start' and 'end'
+            track_start, track_end = track_end, track_start
+        radius = math.sqrt((center.x - track_start.x)**2 + (center.y - track_start.y)**2)
+        # Calculate start and end angles
+        start_angle = math.atan2(track_start.y - center.y, track_start.x - center.x)
+        end_angle = math.atan2(track_end.y - center.y, track_end.x - center.x)
+        if end_angle < start_angle:
+            end_angle += 2 * math.pi
+
+        # Generate points for outer and inner arcs
+        outer_arc_points = arc_points(center, radius + delta, start_angle, end_angle, 20)
+        if delta < radius:
+            inner_arc_points = arc_points(center, radius - delta, start_angle, end_angle, 20)
+        else:
+            inner_arc_points = []
+
+        # Tangent angles at start and end of the arc
+        start_tangent_angle = start_angle + math.pi / 2
+        end_tangent_angle = end_angle + math.pi / 2
+        start_semicircle = semicircle_points(track_start, delta, start_tangent_angle, True)
+        end_semicircle = semicircle_points(track_end, delta, end_tangent_angle, False)
+
+        # Combine points in correct order
+        pts.extend(start_semicircle)
+        pts.extend(outer_arc_points)
+        pts.extend(end_semicircle)
+        pts.extend(inner_arc_points[::-1])  # Reverse inner arc for correct order
+
+    else: # straight track
+        pts.append(track_start + pt_delta)
+        for pt in semicircle_points(track_start, delta, theta, True):
+            pts.append(pt)
+        pts.append(track_start - pt_delta)
+        pts.append(track_end - pt_delta)
+        for pt in semicircle_points(track_end, delta, theta, False):
+            pts.append(pt)
+        pts.append(track_end + pt_delta)
+
     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
         return pcbnew.wxPoint_Vector(pts)
     else: #kv7
         return pcbnew.VECTOR_VECTOR2I(pts)
+
+
+def arc_center(p1, p2, p3):
+    """
+    Calculate the center of the circle passing through an arc defined by p1, p2, p3
+
+    Returns the center and whether or not the arc traverses counterclockwise
+    """
+    # Midpoints of p1p2 and p2p3
+    mid1 = ((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
+    mid2 = ((p2.x + p3.x) / 2, (p2.y + p3.y) / 2)
+
+    slope1 = (p2.y - p1.y) / (p2.x - p1.x) if p2.x != p1.x else float('inf')
+    slope2 = (p3.y - p2.y) / (p3.x - p2.x) if p3.x != p2.x else float('inf')
+
+    # Perpendicular slopes
+    perp_slope1 = -1 / slope1 if slope1 != 0 else float('inf')
+    perp_slope2 = -1 / slope2 if slope2 != 0 else float('inf')
+
+    # Solve for intersection
+    c1 = mid1[1] - perp_slope1 * mid1[0]
+    c2 = mid2[1] - perp_slope2 * mid2[0]
+
+    # Intersection point (center of the circle)
+    center_x = (c2 - c1) / (perp_slope1 - perp_slope2)
+    center_y = perp_slope1 * center_x + c1
+
+    if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+        center = pcbnew.wxPoint(center_x, center_y)
+    else: #kv7
+        center = pcbnew.VECTOR2I(pcbnew.wxPoint(center_x, center_y))
+
+    v1 = (p1.x - center.x, p1.y - center.y)
+    v2 = (p3.x - center.x, p3.y - center.y)
+    ccw = (v1[0] * v2[1] - v1[1] * v2[0]) < 0
+    return center, ccw
+
+
+def arc_points(center, radius, start_angle, end_angle, num_points):
+    """
+    generates num_points along an arc
+    """
+    pts = []
+    for i in range(num_points):
+        angle = start_angle + i * (end_angle - start_angle) / (num_points - 1)
+        x = center[0] + radius * math.cos(angle)
+        y = center[1] + radius * math.sin(angle)
+        if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+            pts.append(pcbnew.wxPoint(x, y))
+        else:
+            pts.append(pcbnew.VECTOR2I(pcbnew.wxPoint(x, y)))
+    return pts
 
 
 def semicircle_points(circle_center, radius, angle_norm, is_start=True):
