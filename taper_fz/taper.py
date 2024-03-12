@@ -83,8 +83,10 @@ def __Bezier(p1, p2, p3, p4, n=20.0):
         y = int(a * p1[1] + b * p2[1] + c * p3[1] + d * p4[1])
         if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
             pts.append(wxPoint(x, y))
-        else: #kv7
+        elif hasattr(pcbnew, 'wxPoint()'): # kv7:
             pts.append(VECTOR2I(wxPoint(x, y)))
+        else: #kv8
+            pts.append(VECTOR2I(int(x), int(y)))
     return pts
 ##
 def __PointDistance(a,b):
@@ -198,22 +200,21 @@ def __ComputePoints(track, pad, segs):
     sy = pad.GetSize().y
     
     invx=1;invy=0
-    # use an angle range
-    # if abs(module.GetOrientationDegrees()) == 180 or abs(module.GetOrientationDegrees()) == 0:
-    #     invx=1;invy=0
-    # elif abs(module.GetOrientationDegrees()) == 90 or abs(module.GetOrientationDegrees()) == 270:
-    #     invx=0;invy=1
-    
-    if abs(module.GetOrientationDegrees()) == 90 or abs(module.GetOrientationDegrees()) == 270:
+
+    if hasattr(pcbnew.BOARD_ITEM_CONTAINER, 'GetOrientationDegrees()'):
+        mDegrees=module.GetOrientationDegrees()
+    else:
+        mDegrees=mDegrees=pad.GetOrientationDegrees()
+    if abs(mDegrees) == 90 or abs(mDegrees) == 270:
         nsx = sx
         nsy  = sy
         wxLogDebug(' m1 '+'sx='+str(ToMM(sx))+' '+'sy='+str(ToMM(sy))+' '+'nsx='+str(ToMM(nsx))+' '+'nsy='+str(ToMM(nsy)),dbg)
-        wxLogDebug(' m1 '+'mod angle='+str(module.GetOrientationDegrees()),dbg)
+        wxLogDebug(' m1 '+'mod angle='+str(mDegrees),dbg)
     else:
         nsx = sy
         nsy  = sx
         wxLogDebug(' m2 '+'sx='+str(ToMM(sx))+' '+'sy='+str(ToMM(sy))+' '+'nsx='+str(ToMM(nsx))+' '+'nsy='+str(ToMM(nsy)),dbg)
-        wxLogDebug(' m2 '+'mod angle='+str(module.GetOrientationDegrees()),dbg)
+        wxLogDebug(' m2 '+'mod angle='+str(mDegrees),dbg)
     if (abs(trackAngle) >= 45 and abs(trackAngle) <= 135) or (abs(trackAngle) >= 225 and abs(trackAngle) <= 315):
         nsx,nsy = nsy,nsx
         #nsy  = nsx
@@ -242,8 +243,10 @@ def __ComputePoints(track, pad, segs):
     while backoff<radius:
         if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
             np = start + wxPoint( vecT[0]*backoff, vecT[1]*backoff )
-        else:
+        elif hasattr(pcbnew, 'wxPoint()'): # kv7:
             np = start + VECTOR2I(wxPoint( vecT[0]*backoff, vecT[1]*backoff ))
+        else:#kv8
+            np = start + VECTOR2I(int( vecT[0]*backoff), int(vecT[1]*backoff ))
         if __PointDistance(np, pad.GetPosition()) >= radius: # via[0]) >= radius:
             break
         backoff += bdelta
@@ -269,13 +272,20 @@ def __ComputePoints(track, pad, segs):
         pointB = start + wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
         pointA = start + wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
         pointF = start + wxPoint(int(vecT[0]*+idm*w), int(vecT[1]*+idm*w))
-    else: #kv7
+    elif hasattr(pcbnew, 'wxPoint()'): # kv7:
         pointB = start + VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
         pointA = start + VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
         #pointB = wxPoint(int(start.x-0.15*radius),int(start.y-0.15*radius)) + wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
         # Introduce a last point in order to cover the via centre.
         # If not, the zone won't be filled or not connected
         pointF = start + VECTOR2I(wxPoint(int(vecT[0]*+idm*w), int(vecT[1]*+idm*w)))
+    else: #kv8
+        pointB = start + VECTOR2I(int( vecT[0]*n +vecT[1]*w) , int(vecT[1]*n -vecT[0]*w ))
+        pointA = start + VECTOR2I(int( vecT[0]*n -vecT[1]*w ), int(vecT[1]*n +vecT[0]*w ))
+        #pointB = wxPoint(int(start.x-0.15*radius),int(start.y-0.15*radius)) + wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
+        # Introduce a last point in order to cover the via centre.
+        # If not, the zone won't be filled or not connected
+        pointF = start + VECTOR2I(int(vecT[0]*+idm*w), int(vecT[1]*+idm*w))
     
     # In some cases of very short, eccentric tracks the points can end up
     # inside the teardrop. If this happens just cancel adding it
@@ -310,7 +320,7 @@ def __ComputePoints(track, pad, segs):
             dE = -pi/2 - offAngle
         #wxLogDebug('offAngle='+str(degrees(offAngle)),dbg)
         
-    padAngle = radians(module.GetOrientationDegrees())
+    padAngle = radians(mDegrees)
     # TBD pad angle in correlation to mod angle
 
     #sign = copysign(1, sin(offAngle)) * copysign (1, cos(offAngle)) 
@@ -322,9 +332,12 @@ def __ComputePoints(track, pad, segs):
     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
         pointC = pad.GetPosition() + wxPoint(int(vecC[0] * nsx/2), int(vecC[1] * nsx/2)) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
         pointE = pad.GetPosition() + wxPoint(int(vecE[0] * nsx/2), int(vecE[1] * nsx/2)) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
-    else: #kv7    
+    elif hasattr(pcbnew, 'wxPoint()'): # kv7:
         pointC = pad.GetPosition() + VECTOR2I(wxPoint(int(vecC[0] * nsx/2), int(vecC[1] * nsx/2))) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
         pointE = pad.GetPosition() + VECTOR2I(wxPoint(int(vecE[0] * nsx/2), int(vecE[1] * nsx/2))) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
+    else: #kv8    
+        pointC = pad.GetPosition() + VECTOR2I(int(vecC[0] * nsx/2), int(vecC[1] * nsx/2)) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
+        pointE = pad.GetPosition() + VECTOR2I(int(vecE[0] * nsx/2), int(vecE[1] * nsx/2)) #radius)) # - wxPoint(int(vec[0]*-0.25*nsy), int(vec[1]*-0.25*nsy))
     # pointC = via[0] + wxPoint(int(vecC[0] * radius), int(vecC[1] * radius))
     # pointE = via[0] + wxPoint(int(vecE[0] * radius), int(vecE[1] * radius))
     #pointC2 = pointC + wxPoint(int(cos(padAngle)*vec[0]*invx*nsx*0.5), int(-sin(padAngle)*vec[1]*invy*nsx*0.5))
@@ -336,9 +349,12 @@ def __ComputePoints(track, pad, segs):
     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
         shiftP = wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
         shiftD= wxPoint(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius))
-    else: #kv7
+    elif hasattr(pcbnew, 'wxPoint()'): # kv7:
         shiftP = VECTOR2I(wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25)))
         shiftD= VECTOR2I(wxPoint(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius)))
+    else: #kv8
+        shiftP = VECTOR2I(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
+        shiftD= VECTOR2I(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius))
     pointC2 = pointC + shiftP #wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
     pointE2 = pointE + shiftP #wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
 
@@ -477,12 +493,18 @@ def __ComputePointsTracks(track1, track2, segs):
         pointB2 = pointB + wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1))    
         #pointA2 = pointA + wxPoint(int(vecT1[0]*idm1*w1), int(vecT1[1]*idm1*w1))
         #pointB2 = pointB + wxPoint(int(vecT1[0]*idm1*w1), int(vecT1[1]*idm1*w1))    
-    else: #kv7    
-        pointB = start1 + VECTOR2I(wxPoint(int(vecT1[0]*n +vecT1[1]*w1) , int(vecT1[1]*n -vecT1[0]*w1) )) + VECTOR2I(wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1)))
-        pointA = start1 + VECTOR2I(wxPoint(int(vecT1[0]*n -vecT1[1]*w1) , int(vecT1[1]*n +vecT1[0]*w1) )) + VECTOR2I(wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1)))
-        pointF =  start1 + VECTOR2I(wxPoint(int(vecT1[0]*1.15*w1) , int(vecT1[1]*1.15*w1))) + VECTOR2I(wxPoint(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1)))
-        pointA2 = pointA + VECTOR2I(wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1)))
-        pointB2 = pointB + VECTOR2I(wxPoint(int(vecT1[0]*w1), int(vecT1[1]*w1)))    
+    elif hasattr(pcbnew, 'wxPoint()'): # kv7:
+        pointB = start1 + VECTOR2I(int(vecT1[0]*n +vecT1[1]*w1) , int(vecT1[1]*n -vecT1[0]*w1) ) + VECTOR2I(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointA = start1 + VECTOR2I(int(vecT1[0]*n -vecT1[1]*w1) , int(vecT1[1]*n +vecT1[0]*w1) ) + VECTOR2I(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointF =  start1 + VECTOR2I(int(vecT1[0]*1.15*w1) , int(vecT1[1]*1.15*w1)) + VECTOR2I(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointA2 = pointA + VECTOR2I(int(vecT1[0]*w1), int(vecT1[1]*w1))
+        pointB2 = pointB + VECTOR2I(int(vecT1[0]*w1), int(vecT1[1]*w1))    
+    else: #kv8    
+        pointB = start1 + VECTOR2I(int(vecT1[0]*n +vecT1[1]*w1) , int(vecT1[1]*n -vecT1[0]*w1) ) + VECTOR2I(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointA = start1 + VECTOR2I(int(vecT1[0]*n -vecT1[1]*w1) , int(vecT1[1]*n +vecT1[0]*w1) ) + VECTOR2I(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointF =  start1 + VECTOR2I(int(vecT1[0]*1.15*w1) , int(vecT1[1]*1.15*w1)) + VECTOR2I(int(vecT1[0]*idm1*w2*shift1), int(vecT1[1]*idm1*w2*shift1))
+        pointA2 = pointA + VECTOR2I(int(vecT1[0]*w1), int(vecT1[1]*w1))
+        pointB2 = pointB + VECTOR2I(int(vecT1[0]*w1), int(vecT1[1]*w1))    
     #wx.LogMessage('w1='+str(ToMM(w1))+'w2='+str(ToMM(w2)))
     # In some cases of very short, eccentric tracks the points can end up
     # inside the teardrop. If this happens just cancel adding it
@@ -535,13 +557,20 @@ def __ComputePointsTracks(track1, track2, segs):
         pointD = end2 + wxPoint(int(vecT2[0]*-0.5*w2) , int(vecT2[1]*-0.5*w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)) 
         #pointD = end2 + wxPoint(int(vecT2[0]*-idm2*1.15*w2), int(vecT2[1]*-idm2*1.15*w2)) + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
         # pointD = via[0] + wxPoint(int(vec[0]*-0.5*radius), int(vec[1]*-0.5*radius))
-    else: # kv7
+    elif hasattr(pcbnew, 'wxPoint()'): # kv7:
         pointC = end2 + VECTOR2I(wxPoint(int(vecC[0] * w2), int(vecC[1] * w2))) + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
         pointE = end2 + VECTOR2I(wxPoint(int(vecE[0] * w2), int(vecE[1] * w2))) + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
         end2_shift = end2 + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
         pointC2 = pointC + VECTOR2I(wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2)))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
         pointE2 = pointE + VECTOR2I(wxPoint(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2)))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
         pointD = end2 + VECTOR2I(wxPoint(int(vecT2[0]*-0.5*w2) , int(vecT2[1]*-0.5*w2))) + VECTOR2I(wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2)))
+    else: # kv8
+        pointC = end2 + VECTOR2I(int(vecC[0] * w2), int(vecC[1] * w2)) + VECTOR2I(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointE = end2 + VECTOR2I(int(vecE[0] * w2), int(vecE[1] * w2)) + VECTOR2I(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        end2_shift = end2 + VECTOR2I(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointC2 = pointC + VECTOR2I(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointE2 = pointE + VECTOR2I(int(vecT2[0]*-0.15*w2), int(vecT2[1]*-0.15*w2))#  + wxPoint(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
+        pointD = end2 + VECTOR2I(int(vecT2[0]*-0.5*w2) , int(vecT2[1]*-0.5*w2)) + VECTOR2I(int(vecT2[0]*-idm2*w1*shift2), int(vecT2[1]*-idm2*w1*shift2))
     
     pts = [pointA, pointB, pointC, pointD, pointE]
     if segs > 2:
@@ -627,11 +656,16 @@ def SetTaper_Zone(pcb=None):
             pointA = start + wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
             pointD = start - wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
             pointC = start - wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
-        else: #kv7
+        elif hasattr(pcbnew, 'wxPoint'): #kv7
             pointB = start + VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
             pointA = start + VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
             pointD = start - VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
             pointC = start - VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
+        else:
+            pointB = start + VECTOR2I(int( vecT[0]*n +vecT[1]*w) , int(vecT[1]*n -vecT[0]*w ))
+            pointA = start + VECTOR2I(int( vecT[0]*n -vecT[1]*w) , int(vecT[1]*n +vecT[0]*w ))
+            pointD = start - VECTOR2I(int( vecT[0]*n +vecT[1]*w ), int(vecT[1]*n -vecT[0]*w ))
+            pointC = start - VECTOR2I(int( vecT[0]*n -vecT[1]*w) , int(vecT[1]*n +vecT[0]*w ))
         points = [pointA,pointB,pointC,pointD]
         pcb.Add(__Zone(pcb, points, track))       
         RebuildAllZones(pcb)
