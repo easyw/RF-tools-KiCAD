@@ -112,8 +112,10 @@ class ViaFenceAction(pcbnew.ActionPlugin):
 
             if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
                 newVia.SetPosition(pcbnew.wxPoint(viaPoint[0], viaPoint[1]))
-            else: #kv7
+            elif hasattr(pcbnew, 'wxPoint()'): # kv7
                 newVia.SetPosition(pcbnew.VECTOR2I(pcbnew.wxPoint(viaPoint[0], viaPoint[1])))
+            else: #kv8
+                newVia.SetPosition(pcbnew.VECTOR2I(int(viaPoint[0]), int(viaPoint[1])))
             newVia.SetWidth(viaSize)
             newVia.SetDrill(viaDrill)
             if hasattr(pcbnew, 'VIA_THROUGH'):

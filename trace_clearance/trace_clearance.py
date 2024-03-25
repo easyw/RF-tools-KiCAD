@@ -210,8 +210,10 @@ def poly_points(track_start, track_end, track_width, clearance):
     delta_y = delta * dx_norm
     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
         pt_delta = pcbnew.wxPoint(delta_x, delta_y)
-    else: #kv7
+    elif hasattr(pcbnew, 'wxPoint()'): #kv7
         pt_delta = pcbnew.VECTOR2I(pcbnew.wxPoint(delta_x, delta_y))
+    else:#kv8
+        pt_delta = pcbnew.VECTOR2I(int(delta_x), int(delta_y))
     pts = []
     pts.append(track_start + pt_delta)
     for pt in semicircle_points(track_start, delta, theta, True):
@@ -258,10 +260,16 @@ def semicircle_points(circle_center, radius, angle_norm, is_start=True):
                 + pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang))
             )
         return pcbnew.wxPoint_Vector(pts)
-    else: # kv7
+    elif hasattr(pcbnew, 'wxPoint()'): #kv7 
         for ang in angles:
             pts.append(
                 circle_center
                 + pcbnew.VECTOR2I(pcbnew.wxPoint(radius * math.cos(ang), radius * math.sin(ang)))
+            )
+    else: # kv8
+        for ang in angles:
+            pts.append(
+                circle_center
+                + pcbnew.VECTOR2I(int(radius * math.cos(ang)), int(radius * math.sin(ang)))
             )
         return pcbnew.VECTOR_VECTOR2I(pts)    
