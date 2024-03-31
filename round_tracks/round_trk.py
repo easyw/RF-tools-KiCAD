@@ -122,7 +122,7 @@ def CalcLinLenght(self): # , dist,len_field):
             tracks.append(item)    
     if len (tracks) == 2:            
         #add all the possible intersections to a unique set, for iterating over later
-        intersections = set();	
+        intersections = set();  
         for t1 in range(len(tracks)):
             for t2 in range(t1+1, len(tracks)):
                 #check if these two tracks share an endpoint
@@ -135,7 +135,10 @@ def CalcLinLenght(self): # , dist,len_field):
             dbg=debug
             for ip in intersections:
                 (x,y) = ip
-                intersection = wxPoint(x,y)
+                if  hasattr(pcbnew,'wxPoint()'):
+                    intersection = wxPoint(x,y)
+                else:
+                    intersection = VECTOR2I(int(x),int(y))
                 t1 = tracks [0]
                 t2 = tracks [1]
                 s1 = t1.GetStart()
@@ -162,8 +165,12 @@ def CalcLinLenght(self): # , dist,len_field):
                     angle2 = math.degrees((getTrackAngle(tracks[1],intersection)))
                     end_coord1 = (distI) * cmath.exp(math.radians(angle1)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
                     end_coord2 = (distI) * cmath.exp(math.radians(angle2)*1j)
-                    startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
-                    endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
+                    if  hasattr(pcbnew,'wxPoint()'):
+                        startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
+                        endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
+                    else:
+                        startP = VECTOR2I(int(end_coord1.real+x),int(end_coord1.imag+y))
+                        endP = VECTOR2I(int(end_coord2.real+x),int(end_coord2.imag+y))
                     center,radius = getCircleCenterRadius( startP,endP,intersection )
                     angle = angle2-angle1
                     if angle > math.degrees(math.pi):
@@ -428,12 +435,12 @@ def create_Track(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None):
     else:
         new_shape = PCB_SHAPE() 
         new_line = PCB_TRACK(new_shape)
-    if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
+    if hasattr(pcbnew, 'EDA_RECT')or not hasattr(pcbnew,'wxPoint()'): # kv5,kv6,kv8
         new_line.SetStart(p1)
         new_line.SetEnd(p2)
     else: #kv7
         new_line.SetStart(VECTOR2I(p1))
-        new_line.SetEnd(VECTOR2I(p2))    
+        new_line.SetEnd(VECTOR2I(p2))     
     if w is None:
         new_line.SetWidth(FromUnits(1.5)) #FromUnits(int(mask_width)))
     else:
@@ -484,10 +491,14 @@ def create_Arc(pcb,p1,p2,mp,lyr=None,w=None,Nn=None,Ts=None):
         new_arc.SetStart(p1)
         new_arc.SetEnd(p2)
         new_arc.SetMid(mp)
-    else: # kv7
+    elif hasattr(pcbnew, 'wxPoint()'): # kv7
         new_arc.SetStart(VECTOR2I(p1))
         new_arc.SetEnd(VECTOR2I(p2))
         new_arc.SetMid(VECTOR2I(mp))        
+    else:#kv8
+        new_arc.SetStart(p1)
+        new_arc.SetEnd(p2)
+        new_arc.SetMid(mp)
     if w is None:
         new_arc.SetWidth(FromUnits(1.5)) #FromUnits(int(mask_width)))
     else:
@@ -558,7 +569,11 @@ def rotatePoint(r,sa,da,c):
     # sa, da in radians
     x = c.x - math.cos(sa+da) * r
     y = c.y - math.sin(sa+da) * r
-    return wxPoint(x,y)
+    if hasattr(pcbnew, 'wxPoint()'):
+        wp=wxPoint(x,y)
+    else:
+        wp=VECTOR2I(int(x),int(y))
+    return wp
 
 def create_round_segments(pcb,sp,a1,ep,a2,cntr,rad,layer,width,Nn,N_SEGMENTS):
     start_point = sp
@@ -630,7 +645,10 @@ def mid_point(p1,p2,angle): #wxpoints,angle in radians
     angle=(angle/2)
     basic_angle=math.atan2(p2.y-p1.y,p2.x-p1.x)-math.pi/2
     shift=(1-math.cos(angle))*math.hypot(p2.y-p1.y,p2.x-p1.x)/2/math.sin(angle)
-    midpoint=wxPoint((p2.x+p1.x)/2+shift*math.cos(basic_angle),(p2.y+p1.y)/2+shift*math.sin(basic_angle))
+    if  hasattr(pcbnew,'wxPoint()'):
+        midpoint=wxPoint((p2.x+p1.x)/2+shift*math.cos(basic_angle),(p2.y+p1.y)/2+shift*math.sin(basic_angle))
+    else:
+        midpoint=VECTOR2I(int((p2.x+p1.x)/2+shift*math.cos(basic_angle)),int((p2.y+p1.y)/2+shift*math.sin(basic_angle)))
     return midpoint
 ###
 def create_round_points(pcb,sp,a1,ep,a2,cntr,rad,N_SEGMENTS):
@@ -713,7 +731,11 @@ def getCircleCenterRadius(sp,ep,ip):
     # import round_trk; import importlib; importlib.reload(round_trk)
     
     radius = math.hypot(Cx-sp.x,Cy-sp.y)
-    return wxPoint(Cx,Cy), radius
+    if  hasattr(pcbnew,'wxPoint()'):
+        wp=wxPoint(Cx,Cy)
+    else:
+        wp=VECTOR2I(int(Cx),int(Cy))
+    return wp, radius
 #
 def deleteSelectedTracks(pcb):
     tracks = pcb.GetTracks()
@@ -796,7 +818,7 @@ def Round_Selection(pcb,distI,segments,calc_len=None):
     
     if len (tracks) == 2:            
         #add all the possible intersections to a unique set, for iterating over later
-        intersections = set();	
+        intersections = set();  
         for t1 in range(len(tracks)):
             for t2 in range(t1+1, len(tracks)):
                 #check if these two tracks share an endpoint
@@ -810,14 +832,17 @@ def Round_Selection(pcb,distI,segments,calc_len=None):
                 (x,y) = ip
                 wxLogDebug("intersections: "+str(ToUnits(x))+":"+str(ToUnits(y)),debug)
                 #wx.LogMessage(str(tracks[0].GetStart()))
-                intersection = wxPoint(x,y)
-                if tracks[0].GetStart() == pcbnew.wxPoint(x,y):
+                if  hasattr(pcbnew,'wxPoint()'):
+                    intersection = wxPoint(x,y)
+                else:
+                    intersection = VECTOR2I(int(x),int(y))
+                if tracks[0].GetStart() == intersection:
                     first_trk_extNode = tracks[0].GetEnd()
                     #wx.LogMessage("tracks[0] external node="+str(ToUnits(tracks[0].GetEnd().x))+";"+str(ToUnits(tracks[0].GetEnd().y)))
                 else:
                     first_trk_extNode = tracks[0].GetStart()
                     #wx.LogMessage("tracks[0] external node="+str(ToUnits(tracks[0].GetStart().x))+";"+str(ToUnits(tracks[0].GetStart().y)))
-                if tracks[1].GetStart() == pcbnew.wxPoint(x,y):
+                if tracks[1].GetStart() == intersection:
                     last_trk_extNode = tracks[1].GetEnd()
                     #wx.LogMessage("tracks[1] external node="+str(ToUnits(tracks[1].GetEnd().x))+";"+str(ToUnits(tracks[1].GetEnd().y)))
                 else:
@@ -827,8 +852,12 @@ def Round_Selection(pcb,distI,segments,calc_len=None):
                 angle2 = math.degrees((getTrackAngle(tracks[1],intersection)))
                 end_coord1 = (distI) * cmath.exp(math.radians(angle1)*1j) #cmath.rect(r, phi) : Return the complex number x with polar coordinates r and phi.
                 end_coord2 = (distI) * cmath.exp(math.radians(angle2)*1j)
-                startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
-                endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
+                if  hasattr(pcbnew,'wxPoint()'):
+                    startP = wxPoint(end_coord1.real+x,end_coord1.imag+y)
+                    endP = wxPoint(end_coord2.real+x,end_coord2.imag+y)
+                else:
+                    startP = VECTOR2I(int(end_coord1.real+x),int(end_coord1.imag+y))
+                    endP = VECTOR2I(int(end_coord2.real+x),int(end_coord2.imag+y))
                 layer = tracks[0].GetLayer()
                 width = ToMM(tracks[0].GetWidth())
                 # if track_item != pcbnew.DRAWSEGMENT:
@@ -1033,7 +1062,10 @@ def Connect_Segments(pcb):
             wxLogDebug('sp2:('+str(ToMM(x3))+','+str(ToMM(y3))+')'+\
                     ';('+str(ToMM(x4))+','+str(ToMM(y4))+')',debug2)
             wxLogDebug('pi:('+str(ToMM(xi))+','+str(ToMM(yi))+')',debug2)
-            pi = wxPoint(xi,yi)
+            if hasattr(pcbnew,'wxPoint()'):
+                pi = wxPoint(xi,yi)
+            else:
+                pi = VECTOR2I(int(xi),int(yi))
             if show_points2:
                 #create_Text(pcb, txt, p, w)
                 create_Text(pcb,'1',wxPoint(x1,y1),FromMM(1.0),pcbnew.F_SilkS)
@@ -1058,7 +1090,7 @@ def Connect_Segments(pcb):
                 else:
                     tracks[1].SetStart(wxPoint(x4,y4))
                     tracks[1].SetEnd(pi)
-            else: #kv7
+            elif hasattr(pcbnew,'wxPoint()'): #kv7
                 if distance(wxPoint(x1,y1),pi) > distance(wxPoint(x3,y3),pi):
                     tracks[0].SetStart(VECTOR2I(wxPoint(x1,y1)))
                     tracks[0].SetEnd(VECTOR2I(pi))
@@ -1073,6 +1105,21 @@ def Connect_Segments(pcb):
                 else:
                     tracks[1].SetStart(VECTOR2I(wxPoint(x4,y4)))
                     tracks[1].SetEnd(VECTOR2I(pi))            
+            else:
+                if distance(VECTOR2I(int(x1),int(y1)),pi)> distance(VECTOR2I(int(x3),int(y3)),pi):
+                    tracks[0].SetStart(VECTOR2I(int(x1),int(y1)))
+                    tracks[0].SetEnd(pi)
+                else:
+                    tracks[0].SetStart(VECTOR2I(int(x3),int(y3)))
+                    tracks[0].SetEnd(pi)
+                wxLogDebug('dp2,pi)'+str(distance(VECTOR2I(int(x2),int(y2)),pi)),debug2)
+                wxLogDebug('dp4,pi)'+str(distance(VECTOR2I(int(x4),int(y4)),pi)),debug2)
+                if distance(VECTOR2I(int(x2),int(y2)),pi) > distance(VECTOR2I(int(x4),int(y4)),pi):
+                    tracks[1].SetStart(VECTOR2I(int(x2),int(y2)))
+                    tracks[1].SetEnd(pi)
+                else:
+                    tracks[1].SetStart(VECTOR2I(int(x4),int(y4)))
+                    tracks[1].SetEnd(pi)            
             pcbnew.Refresh()
     else:
         wxLogDebug(u'\u2718 you must select two tracks only',not debug)
