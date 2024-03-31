@@ -347,13 +347,13 @@ def __ComputePoints(track, pad, segs):
     signy = copysign (1, vec[1])
     
     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
-        shiftP = wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
+        shiftP = wxPoint(int(invx*signx*nsy*0.5), int(invy*signy*nsy*0.5))
         shiftD= wxPoint(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius))
     elif hasattr(pcbnew, 'wxPoint()'): # kv7:
-        shiftP = VECTOR2I(wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25)))
+        shiftP = VECTOR2I(wxPoint(int(invx*signx*nsy*0.5), int(invy*signy*nsy*0.5)))
         shiftD= VECTOR2I(wxPoint(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius)))
     else: #kv8
-        shiftP = VECTOR2I(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
+        shiftP = VECTOR2I(int(invx*signx*nsy*0.5), int(invy*signy*nsy*0.5))
         shiftD= VECTOR2I(int(vec[0]*-0.12*radius), int(vec[1]*-0.12*radius))
     pointC2 = pointC + shiftP #wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
     pointE2 = pointE + shiftP #wxPoint(int(invx*signx*nsy*0.25), int(invy*signy*nsy*0.25))
