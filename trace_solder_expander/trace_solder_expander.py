@@ -114,7 +114,7 @@ class SolderExpander_Dlg(SolderExpanderDlg.SolderExpanderDlg):
 
 class Solder_Expander(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Solder Mask Expander for Tracks\n version 2.5"
+        self.name = "Solder Mask Expander for Tracks\n version 2.7"
         self.category = "Modify PCB"
         self.description = "Solder Mask Expander for selected Tracks on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./soldermask_clearance.png")
@@ -461,7 +461,10 @@ def getCircleCenterRadius(sp,ep,ip):
     Cx = h
     Cy = k
     radius = r
-    return wxPoint(Cx,Cy), radius
+    if  hasattr(pcbnew,'wxPoint()'):
+        return wxPoint(Cx,Cy), radius
+    else:
+        return VECTOR2I(int(Cx),int(Cy)), radius
 #
 def create_Solder(pcb,p1,p2,lyr=None,w=None,Nn=None,Ts=None,pcbG=None):
     #draw segment to test or from Arc
@@ -619,7 +622,10 @@ def rotatePoint(r,sa,da,c):
     # sa, da in radians
     x = c.x - math.cos(sa+da) * r
     y = c.y - math.sin(sa+da) * r
-    return wxPoint(x,y)
+    if  hasattr(pcbnew,'wxPoint()'):
+        return wxPoint(x,y)
+    else:
+        return VECTOR2I(int(x),int(y))
 #
 def create_round_segs(pcb,sp,ep,cntr,rad,layer,width,Nn,N_SEGMENTS,pcbGroup=None):
     start_point = sp

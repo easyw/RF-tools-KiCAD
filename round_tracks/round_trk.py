@@ -285,7 +285,7 @@ class RoundTrack_Dlg(RoundTrackDlg.RoundTrackDlg):
 class Tracks_Rounder(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Rounder for Tracks\n version 3.1"
+        self.name = "Rounder for Tracks\n version 3.2"
         self.category = "Modify PCB"
         self.description = "Rounder for selected Traces on the PCB"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "./round_track.png")

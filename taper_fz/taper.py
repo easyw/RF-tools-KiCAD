@@ -29,7 +29,7 @@ def wxLogDebug(msg,show):
 #
 
 ##global __version__
-__version__ = "1.2"
+__version__ = "1.3"
 
 ToUnits = ToMM
 FromUnits = FromMM
@@ -656,12 +656,12 @@ def SetTaper_Zone(pcb=None):
             pointA = start + wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
             pointD = start - wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w )
             pointC = start - wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w )
-        elif hasattr(pcbnew, 'wxPoint'): #kv7
+        elif hasattr(pcbnew, 'wxPoint()'): #kv7
             pointB = start + VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
             pointA = start + VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
             pointD = start - VECTOR2I(wxPoint( vecT[0]*n +vecT[1]*w , vecT[1]*n -vecT[0]*w ))
             pointC = start - VECTOR2I(wxPoint( vecT[0]*n -vecT[1]*w , vecT[1]*n +vecT[0]*w ))
-        else:
+        else: #kv8
             pointB = start + VECTOR2I(int( vecT[0]*n +vecT[1]*w) , int(vecT[1]*n -vecT[0]*w ))
             pointA = start + VECTOR2I(int( vecT[0]*n -vecT[1]*w) , int(vecT[1]*n +vecT[0]*w ))
             pointD = start - VECTOR2I(int( vecT[0]*n +vecT[1]*w ), int(vecT[1]*n -vecT[0]*w ))
