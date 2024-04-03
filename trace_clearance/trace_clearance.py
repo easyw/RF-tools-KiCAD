@@ -65,7 +65,7 @@ class TraceClearance(pcbnew.ActionPlugin):
     def defaults(self):
         """
         """
-        self.name = "Trace Clearance Generator\n version 1.7"
+        self.name = "Trace Clearance Generator\n version 1.8"
         self.category = "Modify PCB"
         self.description = (
             "Generate a copper pour keepout for a selected trace."
@@ -305,8 +305,10 @@ def arc_center(p1, p2, p3):
 
     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
         center = pcbnew.wxPoint(center_x, center_y)
-    else: #kv7
+    elif  hasattr(pcbnew,'wxPoint()'): #kv7
         center = pcbnew.VECTOR2I(pcbnew.wxPoint(center_x, center_y))
+    else: #kv8
+        center = pcbnew.VECTOR2I(pcbnew.VECTOR2I(int(center_x), int(center_y)))
 
     v1 = (p1.x - center.x, p1.y - center.y)
     v2 = (p3.x - center.x, p3.y - center.y)
@@ -325,8 +327,10 @@ def arc_points(center, radius, start_angle, end_angle, num_points):
         y = center[1] + radius * math.sin(angle)
         if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
             pts.append(pcbnew.wxPoint(x, y))
-        else:
+        elif  hasattr(pcbnew,'wxPoint()'): #kv7
             pts.append(pcbnew.VECTOR2I(pcbnew.wxPoint(x, y)))
+        else:
+            pts.append(pcbnew.VECTOR2I(int(x), int(y)))
     return pts
 
 

@@ -50,7 +50,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
             #Set only the copper layer without mask
             #since nothing is mounted on these pads
             pad.SetLayerSet( LSET(F_Cu) )
-            pad.SetPos0(pos)
+            #pad.SetPos0(pos)
             pad.SetPosition(pos)
             pad.SetPadName(name)
             pad.Rotate(pos, angle)
@@ -82,7 +82,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         #since nothing is mounted on these pads
         #pad.SetPos0(wxPoint(0,0)) #pos)
         #pad.SetPosition(wxPoint(0,0)) #pos)
-        pad.SetPos0(pos)
+        # pad.SetPos0(pos)
         pad.SetPosition(pos)
         #pad.SetOffset(pos)
         pad.SetPadName(name)
@@ -224,10 +224,13 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
             module.Reference().SetPos0(wxPoint(0, textposy))
             size_text = wxSize( FromMM( 0.6), FromMM( 0.5) )
-        else: # kv7
+        elif hasattr(pcbnew, 'wxPoint()'): # kv7:
             module.Reference().SetPos0(pcbnew.VECTOR2I(wxPoint(0, textposy)))
             size_text = pcbnew.VECTOR2I( FromMM( 0.6), FromMM( 0.5) )
-        module.Reference().SetPosition(module.Reference().GetPos0())
+        else: # kv8
+            module.Reference().SetPosition(pcbnew.VECTOR2I(0, textposy))
+            size_text = pcbnew.VECTOR2I( FromMM( 0.6), FromMM( 0.5) )
+        module.Reference().SetPosition(module.Reference().GetPosition())
         module.Reference().SetTextSize( size_text )
         if hasattr(module.Reference(), 'SetThickness'):
             module.Reference().SetThickness(FromMM(0.125))
@@ -240,9 +243,11 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         module.SetValue("uwM_{0:.2f}_{1:0.2f}_{2:.0f}".format(ToMM(width),ToMM(height),angle_deg))
         if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
             module.Value().SetPos0( wxPoint(0, textposy) )
-        else: # kv7
+        elif hasattr(pcbnew, 'wxPoint()'): # kv7:
             module.Value().SetPos0( pcbnew.VECTOR2I(wxPoint(0, textposy)) )
-        module.Value().SetPosition(module.Value().GetPos0())
+        else: # kv8
+            module.Value().SetPosition( pcbnew.VECTOR2I(0, textposy) ) 
+        module.Value().SetPosition(module.Value().GetPosition())
         module.Value().SetTextSize( size_text )
         module.Value().SetVisible(False) #0)
 
@@ -335,7 +340,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
             module.MoveAnchorPosition(wxPoint(-width/2,pad_l/2))
             # set SMD attribute
             # set SMD attribute
-        else: # kv7
+        elif hasattr(pcbnew, 'wxPoint()'): # kv7:
             pts=[]
             for point in points:
                 newEle=VECTOR2I(wxPoint(point[0],point[1]))
@@ -361,8 +366,31 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
             # set SMD attribute
             # set SMD attribute
             #self.Polygon(points, F_Cu)
-
-        
+        else: # kv8
+            pts=[]
+            for point in points:
+                newEle=VECTOR2I(int(point[0]),int(point[1]))
+                pts.append(newEle)
+            points = pts
+            vpoints = VECTOR_VECTOR2I(points)
+            size_pad = pcbnew.VECTOR2I(int(width),int(pad_l))
+            layer = F_Cu; # sold_clear = 0
+            module.Add(self.smdCustomPolyPad(module, size_pad, VECTOR2I(int(width/2),int(-pad_l/2)), "1", vpoints, layer,sold_clear))
+            size_pad = pcbnew.VECTOR2I(int(pad_l), int(width))
+            posx = ((w+x34) + (w+x34-x45))/2
+            posy = ((a+y34) + (a+y34+y45))/2
+    
+            #Position pad so that pad edge touches polygon edge
+            posx += (pad_l/2)*math.sin(angle)
+            posy += (pad_l/2)*math.cos(angle)+w/4
+            size_pad = pcbnew.VECTOR2I(int(pad_l),int(width))
+            #solder clearance added only to polygon
+            module.Add(self.smdRectPad(module, size_pad, VECTOR2I(int(posx),int(posy)), "1",pcbnew.EDA_ANGLE((angle_deg-90)*10,pcbnew.DEGREES_T) ,layer,0.0))
+            # moving anchor to center of first pad
+            module.MoveAnchorPosition(VECTOR2I(int(-width/2),int(pad_l/2)))
+            # set SMD attribute
+            # set SMD attribute
+            #self.Polygon(points, F_Cu)        
         if hasattr(pcbnew, 'MOD_VIRTUAL'):
             module.SetAttributes(pcbnew.MOD_VIRTUAL)
         else:
@@ -374,7 +402,7 @@ class UWMiterFootprintWizard(FootprintWizardBase.FootprintWizard):
         self.buildmessages += ("PCB Height: {0:.4f}mm\n".format(ToMM(height)))
         self.buildmessages += ("Angle: {:.1f}deg\n\n".format(angle_deg))
         self.buildmessages += ("Cut: {0:.2f}%\n".format(cut_pc*100))
-        __version__ = 1.7
+        __version__ = 1.8
         self.buildmessages += ("version: {:.1f}".format(__version__))
         
 

@@ -76,7 +76,7 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
         #since nothing is mounted on these pads
         #pad.SetPos0(wxPoint(0,0)) #pos)
         #pad.SetPosition(wxPoint(0,0)) #pos)
-        pad.SetPos0(pos)
+        #    pad.SetPos0(pos)
         pad.SetPosition(pos)
         #pad.SetOffset(pos)
         pad.SetPadName(name)
@@ -113,7 +113,7 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
             pad.SetLayerSet( LSET(layer) )
         #pad.SetDrillSize (0.)
         #pad.SetLayerSet(pad.ConnSMDMask())
-        pad.SetPos0(pos)
+        # pad.SetPos0(pos)
         pad.SetPosition(pos)
         #pad.SetOrientationDegrees(90-angle_D/10)
         pad.SetOrientationDegrees(angle_D)
@@ -184,7 +184,7 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
             offset2 = pcbnew.wxPoint(0,0)
             points = [wxPoint(*point) for point in points]
             vpoints = wxPoint_Vector(points)
-        else: # kv7
+        elif hasattr(pcbnew, 'wxPoint()'): # kv7:
             pos = pcbnew.VECTOR2I(wxPoint( 0,0 ))
             offset1 = pcbnew.VECTOR2I(wxPoint( 0,0 ))
             offset2 = pcbnew.VECTOR2I(wxPoint( 0,0 ))
@@ -196,6 +196,17 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
             points = pts
             vpoints = VECTOR_VECTOR2I(points)
             #vpoints = points
+        else: # kv8
+            pos = pcbnew.VECTOR2I(int(0),int(0))
+            offset1 = pcbnew.VECTOR2I(int(0),int(0))
+            offset2 = pcbnew.VECTOR2I(int(0),int(0))
+            #points = [pcbnew.VECTOR2I(*wxPoint(point)) for point in points]
+            pts=[]
+            for point in points:
+                newEle=VECTOR2I(int(point[0]),int(point[1]))
+                pts.append(newEle)
+            points = pts
+            vpoints = VECTOR_VECTOR2I(points)
         # self.Polygon(points, F_Cu)
 
         #module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(0,0), "1", PAD_SHAPE_RECT,0,F_Cu,sold_clear,offset1))
@@ -205,11 +216,16 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
             module.Add(self.smdCustomPolyPad(module, size_pad, wxPoint(0,0), "1", vpoints,F_Cu,sold_clear))
             size_pad = pcbnew.wxSize(width2, height2)
             module.Add(self.smdPad(module, size_pad, pcbnew.wxPoint(length+w1/2,0-p2vof), "1", PAD_SHAPE_RECT,0,F_Cu,0.0,offset2))
-        else: # kv7
+        elif hasattr(pcbnew, 'wxPoint()'): # kv7:
             size_pad = pcbnew.VECTOR2I(width1, height1)
             module.Add(self.smdCustomPolyPad(module, size_pad, pcbnew.VECTOR2I(wxPoint(0,0)), "1", vpoints,F_Cu,sold_clear))
             size_pad = pcbnew.VECTOR2I(width2, height2)
             module.Add(self.smdPad(module, size_pad, pcbnew.VECTOR2I(wxPoint(length+w1/2,0-p2vof)), "1", PAD_SHAPE_RECT,0,F_Cu,0.0,offset2))
+        else: # kv8
+            size_pad = pcbnew.VECTOR2I(width1, height1)
+            module.Add(self.smdCustomPolyPad(module, size_pad, pcbnew.VECTOR2I(int(0),int(0)), "1", vpoints,F_Cu,sold_clear))
+            size_pad = pcbnew.VECTOR2I(width2, height2)
+            module.Add(self.smdPad(module, size_pad, pcbnew.VECTOR2I(int(length+w1/2),int(0-p2vof)), "1", PAD_SHAPE_RECT,0,F_Cu,0.0,offset2))
         
         # Text size
         text_size = self.GetTextSize()  # IPC nominal
@@ -225,7 +241,7 @@ class uwTaper_wizard(FootprintWizardBase.FootprintWizard):
             module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
         # module.SetAttributes(pcbnew.MOD_VIRTUAL)
         # module.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
-        __version__ = 1.6
+        __version__ = 1.7
         self.buildmessages += ("version: {:.1f}".format(__version__))
 
 uwTaper_wizard().register()
