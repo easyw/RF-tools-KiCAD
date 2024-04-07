@@ -180,8 +180,10 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     wxLogDebug(str(pcbnew.ToMM(start_rect))+'::'+str(pcbnew.ToMM(size_rect)),debug)
                     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
                         hTest = pcbnew.EDA_RECT(start_rect, size_rect)
-                    else: #kv7
+                    elif hasattr(pcbnew, 'wxPoint()'): # kv7
                         hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(start_rect), pcbnew.VECTOR2I(size_rect))
+                    else: #kv8
+                        hTest = pcbnew.BOX2I(int(viaPos[0] - local_offset*expansion),int(viaPos[1] - local_offset*expansion), pcbnew.VECTOR2I(int(2 * expansion * local_offset),int(2 * expansion * local_offset)))
                     if pad.HitTest(hTest, False):
                         #rectangle[x][y] = self.REASON_PAD
                         wxLogDebug('Hit on Pad: viaPos:'+str(viaPos),debug)
@@ -272,7 +274,9 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                         aContained=False;aAccuracy=0
                     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
                         hTest = pcbnew.EDA_RECT(start_rect, size_rect)
-                    else: #kv7
+                    elif hasattr(pcbnew, 'wxPoint()'): # kv7
+                        hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(start_rect), pcbnew.VECTOR2I(size_rect))
+                    else: #kv8
                         hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(start_rect), pcbnew.VECTOR2I(size_rect))
                     if track.HitTest(hTest, aContained, aAccuracy):
                             #rectangle[x][y] = self.REASON_PAD
