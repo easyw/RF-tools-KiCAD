@@ -36,7 +36,7 @@ def distance (p1,p2):
 class ViaFenceAction(pcbnew.ActionPlugin):
     # ActionPlugin descriptive information
     def defaults(self):
-        self.name = "Via Fence Generator\nversion 3.1"
+        self.name = "Via Fence Generator\nversion 3.2"
         self.category = "Modify PCB"
         self.description = "Add a via fence to nets or tracks on the board"
         self.icon_file_name = os.path.join(os.path.dirname(__file__), "resources/fencing-vias.png")
@@ -181,9 +181,11 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     if hasattr(pcbnew, 'EDA_RECT'): # kv5,kv6
                         hTest = pcbnew.EDA_RECT(start_rect, size_rect)
                     elif hasattr(pcbnew, 'wxPoint()'): # kv7
-                        hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(start_rect), pcbnew.VECTOR2I(size_rect))
+                        hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(int(start_rect.x), int(start_rect.y)),
+                                             pcbnew.VECTOR2I(int(size_rect.x), int(size_rect.y)))
                     else: #kv8
-                        hTest = pcbnew.BOX2I(int(viaPos[0] - local_offset*expansion),int(viaPos[1] - local_offset*expansion), pcbnew.VECTOR2I(int(2 * expansion * local_offset),int(2 * expansion * local_offset)))
+                        hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(int(viaPos[0] - local_offset*expansion),int(viaPos[1] - local_offset*expansion)), pcbnew.VECTOR2I(int(2 * expansion * local_offset),int(2 * expansion * local_offset)))
+                        #hTest = pcbnew.BOX2I(start_rect, size_rect)
                     if pad.HitTest(hTest, False):
                         #rectangle[x][y] = self.REASON_PAD
                         wxLogDebug('Hit on Pad: viaPos:'+str(viaPos),debug)
@@ -268,6 +270,8 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                         trk_type = pcbnew.TRACK
                     else:
                         trk_type = pcbnew.PCB_TRACK
+                    aContained = True
+                    aAccuracy = 0
                     if track.GetNetCode() != self.viaNetId or type(track) != trk_type: #PCB_VIA_T:
                         #wxLogDebug('here',True)
                         #if track.HitTest(pcbnew.EDA_RECT(start_rect, size_rect), False):
@@ -277,7 +281,8 @@ class ViaFenceAction(pcbnew.ActionPlugin):
                     elif hasattr(pcbnew, 'wxPoint()'): # kv7
                         hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(start_rect), pcbnew.VECTOR2I(size_rect))
                     else: #kv8
-                        hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(start_rect), pcbnew.VECTOR2I(size_rect))
+                        hTest = pcbnew.BOX2I(pcbnew.VECTOR2I(int(start_rect.x), int(start_rect.y)),
+                                             pcbnew.VECTOR2I(int(size_rect.x), int(size_rect.y)))                        
                     if track.HitTest(hTest, aContained, aAccuracy):
                             #rectangle[x][y] = self.REASON_PAD
                             wxLogDebug('Hit on Track: viaPos:'+str(viaPos),debug)

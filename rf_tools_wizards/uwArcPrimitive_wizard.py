@@ -107,6 +107,7 @@ class uwArcPrimitive_wizard(FootprintWizardBase.FootprintWizard):
             if not ln:
                 pad.AddPrimitive(pcbnew.VECTOR2I(int(0),int(rad)), pcbnew.VECTOR2I(int(0),int(0)), pcbnew.EDA_ANGLE(int(angle_D*10),pcbnew.DEGREES_T), (size[0])) 
                 #pad.AddPrimitive(int(0),int(rad), int(0),int(0), pcbnew.EDA_ANGLE(int(angle_D*10),pcbnew.DEGREES_T), (size[0])) 
+                #pad.AddPrimitive((int(0),int(rad)), (int(0),int(0)), pcbnew.EDA_ANGLE(int(angle_D*10),pcbnew.DEGREES_T), (size[0])) 
             else:
                 pad.AddPrimitive(pcbnew.VECTOR2I(int(0),int(0)), pcbnew.VECTOR2I(int(rad),int(0)), (size[0]))            
         return pad
